@@ -1,0 +1,70 @@
+nodes/TypeSafeAi/SPEC.md
+  h_44f8d1c0f2f8c4 1-9,13,16-22,27-52,55-64,66,70-72,80-86,91-100,102-108,110-115,117-120,122-124,127,131-140,142,152-153,155,160-182,184,190,194,197,201-202,204,206,211,214,224-227,232-235,239-246,248-249,251-255,259,261,268-270,278,281-285,290-297,300,302-303,305,307-312,314-317,319,324-335,337-350,352-357,361-365,367-368,370-389,393-394,396-401,403-411,413,415,417-421,423-424,426,428-432
+  s_09914ee12104fc::t_9fbe9b97d88a34 412,414,422,425,427
+  s_09914ee12104fc::t_a10f7713c8b4e8 10-12,14-15,23-24,26,53-54,65,67-69,73-79,87-90,101,109,116,121,125-126,128-130,141,143-151,156-157,159,185-187,191-192,207-209,212-213,215-216,218-221,228-231,236-238,260,262-265,267,271-277,279-280,286-287,298-299,304,313,318,320-323,358-360,369,390-391
+  s_09914ee12104fc::t_11cf672ba7260e 25,154,158,183,188-189,193,195-196,198-200,203,205,210,217,222-223,247,250,256-258,266,288-289,301,306,336,351,366,392,395,402
+  s_09914ee12104fc::t_ae11879dba3773 416
+README.md
+  s_09914ee12104fc::t_cacdee41ac938b 1-44
+package-lock.json
+  s_09914ee12104fc::t_c4b1fa42c52086 1-12106
+.agents/credentials.md
+  h_44f8d1c0f2f8c4 1-115
+.agents/nodes-declarative.md
+  h_44f8d1c0f2f8c4 1-103
+.agents/nodes-programmatic.md
+  h_44f8d1c0f2f8c4 1-76
+.agents/nodes.md
+  h_44f8d1c0f2f8c4 1-178
+.agents/properties.md
+  h_44f8d1c0f2f8c4 1-174
+.agents/versioning.md
+  h_44f8d1c0f2f8c4 1-90
+.agents/workflow.md
+  h_44f8d1c0f2f8c4 1-97
+.github/workflows/ci.yml
+  h_44f8d1c0f2f8c4 1-34
+.github/workflows/publish.yml
+  h_44f8d1c0f2f8c4 1-99
+.gitignore
+  h_44f8d1c0f2f8c4 1-2
+.prettierrc.js
+  h_44f8d1c0f2f8c4 1-51
+.vscode/launch.json
+  h_44f8d1c0f2f8c4 1-12
+AGENTS.md
+  h_44f8d1c0f2f8c4 1-102
+CLAUDE.md
+  h_44f8d1c0f2f8c4 1
+eslint.config.mjs
+  h_44f8d1c0f2f8c4 1-3
+nodes/TypeSafeAi/typeSafeAi.dark.svg
+  h_44f8d1c0f2f8c4 1-6
+nodes/TypeSafeAi/typeSafeAi.svg
+  h_44f8d1c0f2f8c4 1-6
+package.json
+  h_44f8d1c0f2f8c4 1-70
+tsconfig.json
+  h_44f8d1c0f2f8c4 1-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a565399695ebde1a2d5a8698bfd1e0eaeedf5601",
+  "prompts": {},
+  "humans": {
+    "h_44f8d1c0f2f8c4": {
+      "author": "Dimitri Lavrenük <dimitri.lavrenuek@n8n.io>"
+    }
+  },
+  "sessions": {
+    "s_09914ee12104fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3967cee-eb79-4d57-803b-295545b90bf1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Dimitri Lavrenük <dimitri.lavrenuek@n8n.io>"
+    }
+  }
+}
