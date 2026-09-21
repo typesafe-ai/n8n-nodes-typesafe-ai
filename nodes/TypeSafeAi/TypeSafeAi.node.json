@@ -1,0 +1,35 @@
+{
+	"node": "@typesafe-ai/n8n-nodes-typesafe-ai.typeSafeAi",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Development", "Utility"],
+	"resources": {
+		"primaryDocumentation": [
+			{
+				"url": "https://docs.typesafe.ai/api"
+			}
+		],
+		"credentialDocumentation": [
+			{
+				"url": "https://docs.typesafe.ai/introduction/quickstart"
+			}
+		]
+	},
+	"alias": [
+		"typesafe",
+		"jev",
+		"classify",
+		"classification",
+		"route",
+		"routing",
+		"triage",
+		"guardrail",
+		"moderation",
+		"score",
+		"rank",
+		"extract",
+		"system one",
+		"probability",
+		"confidence"
+	]
+}

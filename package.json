@@ -1,0 +1,70 @@
+{
+	"name": "@typesafe-ai/n8n-nodes-typesafe-ai",
+	"version": "0.1.0",
+	"description": "Ask TypeSafe AI typed yes/no, choice and score questions and route items by the answer, with calibrated probabilities",
+	"license": "MIT",
+	"homepage": "https://github.com/typesafe-ai/n8n-nodes-typesafe-ai#readme",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"typesafe",
+		"typesafe-ai",
+		"jev",
+		"system-one",
+		"classification",
+		"routing",
+		"scoring",
+		"guardrails",
+		"ai"
+	],
+	"author": {
+		"name": "TypeSafe AI",
+		"email": "support@typesafe.ai"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/typesafe-ai/n8n-nodes-typesafe-ai.git"
+	},
+	"bugs": {
+		"url": "https://github.com/typesafe-ai/n8n-nodes-typesafe-ai/issues"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/TypeSafeAiApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/TypeSafeAi/TypeSafeAi.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "*",
+		"eslint": "9.32.0",
+		"prettier": "3.6.2",
+		"release-it": "^19.0.4",
+		"typescript": "5.9.2",
+		"vitest": "^3.2.4"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}
