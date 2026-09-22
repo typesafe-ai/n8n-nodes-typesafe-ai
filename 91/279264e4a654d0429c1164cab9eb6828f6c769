@@ -1,0 +1,19 @@
+LICENSE.md
+  s_0cd6c493faf10d::t_7df5ac6bb260d7 1-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "91279264e4a654d0429c1164cab9eb6828f6c769",
+  "prompts": {},
+  "sessions": {
+    "s_0cd6c493faf10d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "221ba4b8-0055-4a85-ba38-9a2b4dd0f6a3",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Dimitri Lavrenük <dimitri.lavrenuek@n8n.io>"
+    }
+  }
+}
