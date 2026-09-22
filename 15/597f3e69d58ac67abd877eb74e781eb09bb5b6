@@ -1,0 +1,40 @@
+nodes/TypeSafeAi/descriptions.ts
+  h_44f8d1c0f2f8c4 54,61,73,84,149,324,337-338,364,370
+  h_44f8d1c0f2f8c4 369
+test/helpers.test.ts
+  h_44f8d1c0f2f8c4 204,210,223
+test/execute.test.ts
+  h_44f8d1c0f2f8c4 111,137,146,256
+  h_44f8d1c0f2f8c4 255,257
+CHANGELOG.md
+  h_44f8d1c0f2f8c4 24
+nodes/TypeSafeAi/SPEC.md
+  s_0cd6c493faf10d::t_2c91d3a8f8992b 226,231-232,256-257
+  h_44f8d1c0f2f8c4 237,285,301,324,333,404,442
+  s_0cd6c493faf10d::t_9496edb8469e60 278,403
+nodes/TypeSafeAi/helpers.ts
+  h_44f8d1c0f2f8c4 220
+README.md
+  h_44f8d1c0f2f8c4 69,95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "15597f3e69d58ac67abd877eb74e781eb09bb5b6",
+  "prompts": {},
+  "humans": {
+    "h_44f8d1c0f2f8c4": {
+      "author": "Dimitri Lavrenük <dimitri.lavrenuek@n8n.io>"
+    }
+  },
+  "sessions": {
+    "s_0cd6c493faf10d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "221ba4b8-0055-4a85-ba38-9a2b4dd0f6a3",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Dimitri Lavrenük <dimitri.lavrenuek@n8n.io>"
+    }
+  }
+}
