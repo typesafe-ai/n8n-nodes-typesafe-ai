@@ -1,0 +1,19 @@
+CHANGELOG.md
+  s_0cd6c493faf10d::t_0a9239d97a04fd 1-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "97ba2b584a2eb325d6c2c26b42082ac13db99917",
+  "prompts": {},
+  "sessions": {
+    "s_0cd6c493faf10d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "221ba4b8-0055-4a85-ba38-9a2b4dd0f6a3",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Dimitri Lavrenük <dimitri.lavrenuek@n8n.io>"
+    }
+  }
+}
