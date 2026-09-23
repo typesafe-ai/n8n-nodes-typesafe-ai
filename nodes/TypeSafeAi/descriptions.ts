@@ -104,7 +104,7 @@ const questionEntryFields: INodeProperties[] = [
 			sortable: true,
 			fixedCollection: {
 				itemTitle:
-					'={{ $collection.item.value.level ? `Level ${$collection.item.index + 1}: ${$collection.item.value.level}` : "" }}',
+					'={{ [`Level ${$collection.item.index}`, $collection.item.value.level].filter(Boolean).join(": ") }}',
 			},
 		},
 		placeholder: 'Add Level',
