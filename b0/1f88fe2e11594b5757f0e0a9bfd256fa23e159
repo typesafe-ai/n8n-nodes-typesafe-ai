@@ -1,0 +1,40 @@
+CHANGELOG.md
+  h_44f8d1c0f2f8c4 1-37
+LICENSE.md
+  h_44f8d1c0f2f8c4 1-21
+README.md
+  h_44f8d1c0f2f8c4 1-105
+credentials/TypeSafeAiApi.credentials.ts
+  h_44f8d1c0f2f8c4 1-57
+nodes/TypeSafeAi/SPEC.md
+  h_44f8d1c0f2f8c4 1-445
+nodes/TypeSafeAi/TypeSafeAi.node.json
+  h_44f8d1c0f2f8c4 1-35
+nodes/TypeSafeAi/TypeSafeAi.node.ts
+  h_44f8d1c0f2f8c4 1-201
+nodes/TypeSafeAi/api.ts
+  h_44f8d1c0f2f8c4 1-147
+nodes/TypeSafeAi/descriptions.ts
+  h_44f8d1c0f2f8c4 1-374
+nodes/TypeSafeAi/helpers.ts
+  h_44f8d1c0f2f8c4 1-239
+test/api.test.ts
+  h_44f8d1c0f2f8c4 1-56
+test/execute.test.ts
+  h_44f8d1c0f2f8c4 1-263
+test/helpers.test.ts
+  h_44f8d1c0f2f8c4 1-252
+vitest.config.ts
+  h_44f8d1c0f2f8c4 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b01f88fe2e11594b5757f0e0a9bfd256fa23e159",
+  "prompts": {},
+  "humans": {
+    "h_44f8d1c0f2f8c4": {
+      "author": "Dimitri Lavrenük <dimitri.lavrenuek@n8n.io>"
+    }
+  }
+}
