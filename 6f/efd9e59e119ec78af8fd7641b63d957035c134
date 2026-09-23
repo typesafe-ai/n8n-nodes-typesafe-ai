@@ -1,0 +1,56 @@
+.agents/credentials.md
+  h_44f8d1c0f2f8c4 1-115
+.agents/nodes-declarative.md
+  h_44f8d1c0f2f8c4 1-103
+.agents/nodes-programmatic.md
+  h_44f8d1c0f2f8c4 1-76
+.agents/nodes.md
+  h_44f8d1c0f2f8c4 1-178
+.agents/properties.md
+  h_44f8d1c0f2f8c4 1-174
+.agents/versioning.md
+  h_44f8d1c0f2f8c4 1-90
+.agents/workflow.md
+  h_44f8d1c0f2f8c4 1-97
+.github/workflows/ci.yml
+  h_44f8d1c0f2f8c4 1-34
+.github/workflows/publish.yml
+  h_44f8d1c0f2f8c4 1-99
+.gitignore
+  h_44f8d1c0f2f8c4 1-2
+.prettierrc.js
+  h_44f8d1c0f2f8c4 1-51
+.vscode/launch.json
+  h_44f8d1c0f2f8c4 1-12
+AGENTS.md
+  h_44f8d1c0f2f8c4 1-102
+CLAUDE.md
+  h_44f8d1c0f2f8c4 1
+README.md
+  h_44f8d1c0f2f8c4 1-44
+eslint.config.mjs
+  h_44f8d1c0f2f8c4 1-3
+nodes/TypeSafeAi/SPEC.md
+  h_44f8d1c0f2f8c4 1-432
+nodes/TypeSafeAi/typeSafeAi.dark.svg
+  h_44f8d1c0f2f8c4 1-6
+nodes/TypeSafeAi/typeSafeAi.svg
+  h_44f8d1c0f2f8c4 1-6
+package-lock.json
+  h_44f8d1c0f2f8c4 1-12106
+package.json
+  h_44f8d1c0f2f8c4 1-70
+tsconfig.json
+  h_44f8d1c0f2f8c4 1-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6fefd9e59e119ec78af8fd7641b63d957035c134",
+  "prompts": {},
+  "humans": {
+    "h_44f8d1c0f2f8c4": {
+      "author": "Dimitri Lavrenük <dimitri.lavrenuek@n8n.io>"
+    }
+  }
+}
