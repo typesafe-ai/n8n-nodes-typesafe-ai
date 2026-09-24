@@ -84,12 +84,7 @@ describe('Route', () => {
 		expect(outputs[0]).toHaveLength(0);
 		expect(outputs[1][0].json).toEqual({
 			ticket: 1,
-			route: {
-				route: 'technical',
-				confidence: 0.9,
-				lowConfidence: false,
-				probabilities: { billing: 0.9, technical: 0.1 },
-			},
+			route: { value: 'technical', confidence: 0.9, lowConfidence: false },
 			model: 'jev-1.13.0',
 		});
 		expect(outputs[2]).toHaveLength(0);
@@ -115,7 +110,7 @@ describe('Route', () => {
 		const outputs = await TypeSafeAi.prototype.execute.call(functions);
 
 		expect(outputs[0]).toHaveLength(0);
-		expect(outputs[2][0].json.route).toMatchObject({ route: 'billing', lowConfidence: true });
+		expect(outputs[2][0].json.route).toMatchObject({ value: 'billing', lowConfidence: true });
 	});
 
 	it('keeps an unsure item on its route when routing to the best option', async () => {
@@ -127,7 +122,7 @@ describe('Route', () => {
 		const outputs = await TypeSafeAi.prototype.execute.call(functions);
 
 		expect(outputs).toHaveLength(2);
-		expect(outputs[0][0].json.route).toMatchObject({ route: 'billing', lowConfidence: false });
+		expect(outputs[0][0].json.route).toMatchObject({ value: 'billing', lowConfidence: false });
 	});
 });
 
@@ -166,6 +161,137 @@ describe('Route errors with Continue On Fail', () => {
 		const outputs = await TypeSafeAi.prototype.execute.call(functions);
 
 		expect(outputs[2][0].json).toEqual({ error: 'Server exploded' });
+	});
+});
+
+describe('Route by Noul', () => {
+	const noulParameters: Record<string, unknown> = {
+		operation: 'route',
+		routeQuestionType: 'noul',
+		model: { mode: 'list', value: 'jev-latest', cachedResultName: 'jev-latest' },
+		stateFormat: 'inputItem',
+		routeInstructions: 'Is this ticket urgent?',
+		routeTrueMeans: 'Needs a reply today',
+		routeFalseMeans: 'Can wait',
+		trueThreshold: 0.8,
+		falseThreshold: 0.2,
+	};
+
+	const noulResponse = (noul: number) => () => ({
+		statusCode: 200,
+		body: {
+			model: 'jev-1.13.0',
+			answers: { route: { type: 'noul', noul } },
+			usage: { input_tokens: 296, output_tokens: 20 },
+		},
+	});
+
+	async function route(parameters: Record<string, unknown>, noul: number, continueOnFail = false) {
+		const { functions, request } = createFunctions(
+			parameters,
+			items,
+			noulResponse(noul),
+			continueOnFail,
+		);
+		return { outputs: await TypeSafeAi.prototype.execute.call(functions), request };
+	}
+
+	it('asks a noul question carrying both meanings', async () => {
+		const { request } = await route(noulParameters, 0.9);
+		const body = (request.mock.calls[0] as unknown as [unknown, { body: unknown }])[1].body;
+
+		expect(body).toEqual({
+			state: { ticket: 1 },
+			model: 'jev-latest',
+			questions: {
+				route: {
+					type: 'noul',
+					instructions: 'Is this ticket urgent?',
+					criteria: { true: 'Needs a reply today', false: 'Can wait' },
+				},
+			},
+		});
+	});
+
+	it('sends a high probability to the True output', async () => {
+		const { outputs } = await route(noulParameters, 0.9);
+
+		expect(outputs).toHaveLength(3);
+		expect(outputs[0][0].json).toEqual({
+			ticket: 1,
+			route: { value: 0.9, uncertain: false },
+			model: 'jev-1.13.0',
+		});
+	});
+
+	it('sends a low probability to the False output', async () => {
+		const { outputs } = await route(noulParameters, 0.1);
+
+		expect(outputs[1][0].json.route).toEqual({ value: 0.1, uncertain: false });
+	});
+
+	it('sends a probability inside the gap to the Uncertain output', async () => {
+		const { outputs } = await route(noulParameters, 0.5);
+
+		expect(outputs[0]).toHaveLength(0);
+		expect(outputs[1]).toHaveLength(0);
+		expect(outputs[2][0].json.route).toEqual({ value: 0.5, uncertain: true });
+	});
+
+	it.each([
+		[0.8, 0, 'True'],
+		[0.2, 1, 'False'],
+	])('routes a probability exactly on a threshold (%s) to %s', async (noul, index) => {
+		const { outputs } = await route(noulParameters, noul);
+
+		expect(outputs[index][0].json.route).toEqual({ value: noul, uncertain: false });
+	});
+
+	it('has no Uncertain output when the thresholds meet', async () => {
+		const { outputs } = await route(
+			{ ...noulParameters, trueThreshold: 0.5, falseThreshold: 0.5 },
+			0.5,
+		);
+
+		expect(outputs).toHaveLength(2);
+		expect(outputs[0][0].json.route).toEqual({ value: 0.5, uncertain: false });
+	});
+
+	it('returns the API answer and usage unchanged when not simplifying', async () => {
+		const { outputs } = await route({ ...noulParameters, 'options.simplify': false }, 0.9);
+
+		expect(outputs[0][0].json).toEqual({
+			ticket: 1,
+			route: { type: 'noul', noul: 0.9, uncertain: false },
+			model: 'jev-1.13.0',
+			usage: { input_tokens: 296, output_tokens: 20 },
+		});
+	});
+
+	it('rejects thresholds that overlap', async () => {
+		const { functions } = createFunctions(
+			{ ...noulParameters, trueThreshold: 0.3, falseThreshold: 0.7 },
+			items,
+			noulResponse(0.5),
+		);
+
+		await expect(TypeSafeAi.prototype.execute.call(functions)).rejects.toThrow(
+			/True Probability Threshold \(0.3\) is below False Probability Threshold \(0.7\)/,
+		);
+	});
+
+	it('sends a failing item to the last output', async () => {
+		const { functions } = createFunctions(
+			noulParameters,
+			items,
+			() => ({ statusCode: 500, body: { detail: 'Server exploded' } }),
+			true,
+		);
+		const outputs = await TypeSafeAi.prototype.execute.call(functions);
+
+		expect(outputs[0]).toHaveLength(0);
+		expect(outputs[1]).toHaveLength(0);
+		expect(outputs[2][0].json).toMatchObject({ ticket: 1, error: 'Server exploded' });
 	});
 });
 

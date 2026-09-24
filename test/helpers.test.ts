@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	buildCriteriaMap,
 	buildLevels,
+	buildNoulQuestion,
 	buildOutputItem,
 	buildQuestion,
 	buildQuestionsFromEntries,
@@ -227,8 +228,60 @@ describe('configuredOutputs', () => {
 		]);
 	});
 
+	it('labels the Noul outputs with the True and False meanings', () => {
+		expect(
+			configuredOutputs({
+				operation: 'route',
+				routeQuestionType: 'noul',
+				routeTrueMeans: 'Needs a reply today',
+				routeFalseMeans: 'Can wait',
+				trueThreshold: 0.8,
+				falseThreshold: 0.2,
+			}),
+		).toEqual([
+			{ type: 'main', displayName: 'Needs a reply today' },
+			{ type: 'main', displayName: 'Can wait' },
+			{ type: 'main', displayName: 'Uncertain' },
+		]);
+	});
+
+	it('falls back to True and False when no meanings are given', () => {
+		expect(configuredOutputs({ operation: 'route', routeQuestionType: 'noul' })).toEqual([
+			{ type: 'main', displayName: 'True' },
+			{ type: 'main', displayName: 'False' },
+		]);
+	});
+
+	it('adds no Uncertain output when the thresholds leave no gap', () => {
+		expect(
+			configuredOutputs({
+				operation: 'route',
+				routeQuestionType: 'noul',
+				trueThreshold: 0.5,
+				falseThreshold: 0.5,
+			}),
+		).toHaveLength(2);
+	});
+
 	it('keeps one output while no route is named yet', () => {
 		expect(configuredOutputs({ operation: 'route', routes: {} })).toEqual([{ type: 'main' }]);
+	});
+});
+
+describe('buildNoulQuestion', () => {
+	it('omits the criteria when neither meaning is given', () => {
+		expect(buildNoulQuestion('Urgent?', '', '  ')).toEqual({
+			type: 'noul',
+			instructions: 'Urgent?',
+		});
+	});
+
+	it('sends only the meanings that were given, trimmed', () => {
+		expect(buildNoulQuestion('Urgent?', ' Today ', '')).toEqual({
+			type: 'noul',
+			instructions: 'Urgent?',
+			criteria: { true: 'Today' },
+		});
 	});
 });
 

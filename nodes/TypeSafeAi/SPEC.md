@@ -274,12 +274,28 @@ is ever visible.
 
 ### 5.5 Routes — Route only
 
-| Label | Required | Default | Meaning |
-| --- | --- | --- | --- |
-| Instructions | yes | — | What the model should decide. |
-| Routes | yes | — | A reorderable list of two to 255 routes; each entry becomes an output. |
-| Confidence Handling | no | Route to Best Option | See §8.3. |
-| Confidence Threshold | no | `0.5` | Shown only when a Fallback output is enabled. Range 0–1. |
+A route is decided by one question, of either type.
+
+| Label | Required | Default | Shown when | Meaning |
+| --- | --- | --- | --- | --- |
+| Question Type | yes | Choice | always | Choice or Noul (Yes/No). |
+| Instructions | yes | — | always | What the model should decide. |
+| Routes | yes | — | Choice | A reorderable list of two to 255 routes; each entry becomes an output. |
+| Confidence Handling | no | Route to Best Option | Choice | See §8.3. |
+| Confidence Threshold | no | `0.5` | Choice, and a Fallback output enabled | Range 0–1. |
+| True Means | no | — | Noul | What a yes (value near 1) means. Also labels the output. |
+| False Means | no | — | Noul | What a no (value near 0) means. Also labels the output. |
+| True Probability Threshold | no | `0.5` | Noul | At or above this, the item is a yes. Range 0–1. |
+| False Probability Threshold | no | `0.5` | Noul | At or below this, the item is a no. Range 0–1. |
+
+Confidence Handling and Confidence Threshold are offered only for a Choice,
+because the API returns no confidence for a Noul. The Noul equivalent is the
+gap between the two thresholds, per §8.3.
+
+The **True Probability Threshold** MUST NOT be below the **False Probability
+Threshold**. The two would then overlap, leaving an answer between them
+belonging to both outcomes; that MUST be reported as a configuration problem
+per §7.
 
 Each **Routes** entry is titled by its **Name**:
 
@@ -288,8 +304,10 @@ Each **Routes** entry is titled by its **Name**:
 | Name | yes | Sent to the API as the Choice option, and used as the output's label. |
 | Description | no | A description of that option, used as its rubric. |
 
-A route's **Name** MUST NOT be settable by expression, because output labels
-are resolved in the editor before the workflow runs.
+A route's **Name**, the **Question Type**, both meanings and both thresholds
+MUST NOT be settable by expression. Between them they decide how many outputs
+the node has and what each is called, and that is resolved in the editor before
+the workflow runs.
 
 A route is a Choice option, so by §5 rule 3 its fields carry the same labels as
 an option's.
@@ -301,7 +319,7 @@ A collection, shown for both operations unless noted.
 | Label | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | Include Other Input Fields | boolean | `true` | Keep the incoming item's fields alongside the result. |
-| Simplify Output | boolean | `true` | Evaluate only. Return one value per question instead of the full response. |
+| Simplify Output | boolean | `true` | Reduce each answer to its value instead of returning the full response. Applies to both operations. |
 | Timeout | number, min 1000 | `5000` | Time in ms to wait for the server to send response headers (and start the response body) before aborting the request |
 
 There MUST NOT be an option for renaming the output field. See §8.4.
@@ -332,10 +350,14 @@ listed, lowest first.
 
 ### 6.2 Question for Route
 
-Exactly one Choice question, under a fixed ID the node chooses and the user
-never sees. Its `instructions` are the **Instructions** field, and its
-`criteria` map each route's **Name** to its **Description** text, or `null`
-when blank.
+Exactly one question, of the selected **Question Type**, under a fixed ID the
+node chooses and the user never sees. Its `instructions` are the
+**Instructions** field.
+
+For a Choice, its `criteria` map each route's **Name** to its **Description**
+text, or `null` when blank. For a Noul, its `criteria` carry the given **True
+Means** and **False Means**, and are omitted entirely when both are blank —
+exactly as for a Noul question in §6.1.
 
 ---
 
@@ -388,19 +410,44 @@ One output item per input item:
 
 ### 8.3 Route
 
+`route` MUST be the answer to the route question exactly as §8.1 or §8.2 would
+present it for the current **Simplify Output** setting, plus one key naming the
+decision: `lowConfidence` for a Choice, `uncertain` for a Noul. Nothing else is
+added, and the chosen option is therefore `value` when simplified. Token
+`usage` appears under the same rule as §8.2, only when **Simplify Output** is
+off.
+
+Choice, simplified and raw:
+
 ```json
-{
-  "route": {
-    "route": "billing",
-    "confidence": 0.81,
-    "lowConfidence": false,
-    "probabilities": { "billing": 0.88, "technical": 0.12, "sales": 0.0 }
-  },
-  "model": "jev-1.13.0"
-}
+{ "route": { "value": "billing", "confidence": 0.81, "lowConfidence": false },
+  "model": "jev-1.13.0" }
 ```
 
-Outputs:
+```json
+{ "route": { "type": "choice", "choice": "billing", "confidence": 0.81,
+             "probabilities": { "billing": 0.88, "technical": 0.12 },
+             "lowConfidence": false },
+  "model": "jev-1.13.0",
+  "usage": { "input_tokens": 296, "output_tokens": 20 } }
+```
+
+Noul, simplified and raw:
+
+```json
+{ "route": { "value": 0.85, "uncertain": false }, "model": "jev-1.13.0" }
+```
+
+```json
+{ "route": { "type": "noul", "noul": 0.85, "uncertain": false },
+  "model": "jev-1.13.0",
+  "usage": { "input_tokens": 296, "output_tokens": 20 } }
+```
+
+Which outcome an item met is told by the output it leaves from; it is not
+repeated in the data.
+
+Outputs for a **Choice**:
 
 1. One output per configured route, in the order the routes are listed,
    labelled with the route's **Name**.
@@ -409,7 +456,21 @@ Outputs:
    there when its confidence is below **Confidence Threshold**.
 3. When it is *Route to Best Option*, there is no extra output and every
    item follows the chosen route.
-4. The outputs shown in the editor MUST match those produced at runtime.
+
+Outputs for a **Noul**, in this order:
+
+4. One output for a yes, labelled with **True Means** or `True` when that is
+   blank. An item goes there when its value is at or above the **True
+   Probability Threshold**.
+5. One output for a no, labelled with **False Means** or `False` when that is
+   blank. An item goes there when its value is at or below the **False
+   Probability Threshold**.
+6. When the thresholds leave a gap between them, one further output labelled
+   `Uncertain` is appended last, and an item whose value falls in the gap goes
+   there. With the thresholds equal there is no gap, no third output, and every
+   item is a yes or a no.
+
+7. The outputs shown in the editor MUST match those produced at runtime.
 
 ### 8.4 Common rules
 
@@ -444,6 +505,8 @@ budget surfaces the resulting 422 as in §9.1.
 When the workflow enables it, a failing item MUST be emitted with an `error`
 field, and processing MUST continue with the remaining items. It goes to the
 `Fallback` output where one is enabled, so that a failure is never
-mistaken for a routing decision, and to the first output otherwise.
+mistaken for a routing decision, and to the first output otherwise. Routing by
+a Noul has no Fallback, so a failing item goes to the last output there —
+`Uncertain` where one exists, and the no output otherwise.
 **Include Other Input Fields** applies to it as it does to any other item.
 Otherwise the error stops the node and identifies the item that failed.

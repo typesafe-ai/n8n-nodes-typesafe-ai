@@ -117,13 +117,22 @@ export function buildQuestion(context: ItemContext, entry: QuestionEntry, id: st
 			criteria: buildLevels(context, entry.scoreLevels?.level ?? [], where),
 		};
 	}
+	return buildNoulQuestion(instructions, entry.trueMeans, entry.falseMeans);
+}
+
+/** A noul question, with the criteria omitted when neither meaning was given */
+export function buildNoulQuestion(
+	instructions: string,
+	trueMeans: unknown,
+	falseMeans: unknown,
+): IDataObject {
 	const criteria = compact({
-		true: blankToUndefined(entry.trueMeans),
-		false: blankToUndefined(entry.falseMeans),
+		true: blankToUndefined(trueMeans),
+		false: blankToUndefined(falseMeans),
 	});
 	return Object.keys(criteria).length === 0
-		? { type, instructions }
-		: { type, instructions, criteria };
+		? { type: 'noul', instructions }
+		: { type: 'noul', instructions, criteria };
 }
 
 export function buildQuestionsFromEntries(
@@ -201,12 +210,29 @@ export function simplifyAnswers(answers: Record<string, Answer>): IDataObject {
 export const configuredOutputs = (
 	parameters: {
 		operation?: string;
+		routeQuestionType?: string;
 		routes?: { route?: Array<{ name?: string }> };
 		confidenceHandling?: string;
+		routeTrueMeans?: string;
+		routeFalseMeans?: string;
+		trueThreshold?: number;
+		falseThreshold?: number;
 	} = {},
 ) => {
 	if (parameters.operation !== 'route') {
 		return [{ type: 'main' }];
+	}
+	if (parameters.routeQuestionType === 'noul') {
+		const outputs = [
+			{ type: 'main', displayName: (parameters.routeTrueMeans ?? '').trim() || 'True' },
+			{ type: 'main', displayName: (parameters.routeFalseMeans ?? '').trim() || 'False' },
+		];
+		const trueThreshold = parameters.trueThreshold ?? 0.5;
+		const falseThreshold = parameters.falseThreshold ?? 0.5;
+		if (trueThreshold > falseThreshold) {
+			outputs.push({ type: 'main', displayName: 'Uncertain' });
+		}
+		return outputs;
 	}
 	const routes = parameters.routes?.route ?? [];
 	const outputs = routes

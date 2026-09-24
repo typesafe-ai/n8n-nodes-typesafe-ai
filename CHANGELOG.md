@@ -23,11 +23,17 @@ package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Confidence-gated routing.** Route items answered below a configurable
   threshold to a separate `Fallback` output, or send every item to its
   chosen route regardless of confidence.
+- **Yes/no routing.** Route can also ask a single yes/no question and split on
+  the probability of yes, with a threshold for each outcome. Leaving a gap
+  between the two adds an `Uncertain` output for the answers in between, so the
+  model can decline to commit instead of guessing.
 - **Model selection** from a searchable list fetched from the API, or by
   entering a version such as `jev-1.13.0` directly to keep answers stable.
 - **Simplify Output** reduces each answer to a value, with the level and
   confidence where the question type has them. Turn it off for the API's
-  response unchanged, including token usage.
+  response unchanged, including token usage. It applies to both operations: a
+  routed item carries the same answer shape under `route`, plus the flag naming
+  the decision.
 - **Input fields are preserved** by default, with binary data carried through.
   The node's own fields are written over them, so an incoming `answers`, `route`
   or `model` field is replaced.

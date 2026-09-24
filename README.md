@@ -49,24 +49,28 @@ Turn it off to get the API's answers unchanged, along with token `usage`.
 
 ### Route
 
-Evaluates one state against a single choice question and sends the item to the output matching the answer. Every route you configure becomes its own output, labelled with the route's name.
+Evaluates one state against a single question and sends the item to the output matching the answer. **Question Type** picks how it decides.
+
+**Choice** — every route you configure becomes its own output, labelled with the route's name.
 
 ```json
-{
-  "route": {
-    "route": "billing",
-    "confidence": 0.81,
-    "lowConfidence": false,
-    "probabilities": { "billing": 0.88, "technical": 0.12, "sales": 0.0 }
-  },
-  "model": "jev-1.13.0"
-}
+{ "route": { "value": "billing", "confidence": 0.81, "lowConfidence": false }, "model": "jev-1.13.0" }
 ```
 
 **Confidence Handling** decides what happens when the model is unsure:
 
 - *Route to Best Option* (the default) sends every item to its chosen route, however unsure the model was.
 - *Route to Separate Fallback Output* appends one extra output, `Fallback`, and sends items answered below **Confidence Threshold** there instead of to the chosen route.
+
+**Noul (Yes/No)** — asks one yes/no question and splits on the probability of yes. There are two outputs, labelled with **True Means** and **False Means** where you give them.
+
+```json
+{ "route": { "value": 0.85, "uncertain": false }, "model": "jev-1.13.0" }
+```
+
+An item goes to the yes output at or above **True Probability Threshold**, and to the no output at or below **False Probability Threshold**. Both default to `0.5`, which splits every item one way or the other. Move them apart — say `0.8` and `0.2` — and a third output, `Uncertain`, appears for everything in between, so the model can decline to commit rather than guess.
+
+In both modes the `route` object is the answer exactly as Evaluate would return it, plus the flag naming the decision. With **Simplify Output** off you get the API's own answer and token `usage` instead.
 
 ## Credentials
 
@@ -92,7 +96,7 @@ All questions in one Evaluate run see the same state, so a single request can an
 
 ### Errors
 
-A failed request surfaces with its HTTP status and the API's own description. Enable **Retry On Fail** on the node to retry rate-limited or overloaded requests, and **Continue On Fail** to emit the failing item with an `error` field and carry on with the rest. In Route, a failing item goes to the `Fallback` output where one is enabled, so a failure is never mistaken for a routing decision.
+A failed request surfaces with its HTTP status and the API's own description. Enable **Retry On Fail** on the node to retry rate-limited or overloaded requests, and **Continue On Fail** to emit the failing item with an `error` field and carry on with the rest. In Route, a failing item goes to the `Fallback` output where one is enabled, or to `Uncertain` when routing by a Noul, so a failure is never mistaken for a routing decision.
 
 ## Resources
 
