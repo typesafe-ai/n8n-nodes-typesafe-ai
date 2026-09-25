@@ -537,6 +537,21 @@ describe('Evaluate', () => {
 	});
 });
 
+describe('Request', () => {
+	it('keeps the API key off a cross-origin redirect', async () => {
+		const { functions, request } = createFunctions(routeParameters, items, () =>
+			choiceResponse('billing', 0.9),
+		);
+		await TypeSafeAi.prototype.execute.call(functions);
+
+		const [, options] = request.mock.calls[0] as unknown as [
+			unknown,
+			{ sendCredentialsOnCrossOriginRedirect: unknown },
+		];
+		expect(options.sendCredentialsOnCrossOriginRedirect).toBe(false);
+	});
+});
+
 describe('Model', () => {
 	const modelParameters = (model: unknown) => ({ ...routeParameters, model });
 

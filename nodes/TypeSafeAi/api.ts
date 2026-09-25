@@ -101,6 +101,8 @@ async function apiRequest(
 			json: true,
 			returnFullResponse: true,
 			ignoreHttpStatusErrors: true,
+			// Keep the API key on TypeSafe's host if a response redirects elsewhere
+			sendCredentialsOnCrossOriginRedirect: false,
 		},
 	);
 	const { statusCode, body } = response as { statusCode: number; body: unknown };
