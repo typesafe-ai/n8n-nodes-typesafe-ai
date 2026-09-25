@@ -65,7 +65,7 @@ Dev dependencies are exempt from rules 1–3.
 ## 3. Credential
 
 Identified as `typeSafeAiApi` and displayed as **TypeSafe AI API**.
-Documentation link: `https://docs.typesafe.ai/`. It MUST
+Documentation link: `https://docs.typesafe.ai`. It MUST
 carry the node's light and dark icons.
 
 ### 3.1 Fields
@@ -120,7 +120,7 @@ The node's codex file MUST declare:
 | `node` | `@typesafe-ai/n8n-nodes-typesafe-ai.typeSafeAi` |
 | `categories` | `["Development", "Utility"]` |
 | `resources.primaryDocumentation` | `https://docs.typesafe.ai` |
-| `resources.credentialDocumentation` | `https://docs.typesafe.ai/introduction/quickstart` |
+| `resources.credentialDocumentation` | `https://docs.typesafe.ai` |
 | `alias` | see below |
 
 `node` MUST be the package name followed by the node identifier.

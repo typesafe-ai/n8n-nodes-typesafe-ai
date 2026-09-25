@@ -13,7 +13,7 @@ export class TypeSafeAiApi implements ICredentialType {
 
 	displayName = 'TypeSafe AI API';
 
-	documentationUrl = 'https://docs.typesafe.ai/';
+	documentationUrl = 'https://docs.typesafe.ai';
 
 	icon: Icon = {
 		light: 'file:../nodes/TypeSafeAi/typeSafeAi.svg',
