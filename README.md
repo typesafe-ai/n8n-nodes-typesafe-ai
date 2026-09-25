@@ -9,6 +9,7 @@ The node has two operations. **Evaluate** adds the answers to each item. **Route
 [Installation](#installation)
 [Credentials](#credentials)
 [Operations](#operations)
+[Example workflow](#example-workflow)
 [Output](#output)
 [Errors](#errors)
 [Compatibility](#compatibility)
@@ -87,6 +88,12 @@ The `route` field holds the answer in the same form Evaluate uses, and the outpu
 ```json
 { "route": { "choice": "billing", "confidence": 0.81 }, "model": "jev-1.13.0" }
 ```
+
+## Example workflow
+
+This workflow triages support tickets. A webhook receives each ticket, and the TypeSafe AI node's Route operation asks a Choice question with three routes: `billing`, `tech support` and `sales`. Each route's output leads to that team. **Confidence Handling** is set to **Route to Separate Fallback Output**, so a ticket answered below **Confidence Threshold** leaves from `Fallback` instead. A Switch node then sends it on by its confidence, either to be flagged for review or to a human queue.
+
+![An n8n workflow in which a webhook receives a support ticket, the TypeSafe AI node routes it to the billing, tech support or sales team, and its Fallback output leads to a Switch node that sends the ticket for review or to a human queue](docs/images/example-workflow.png)
 
 ## Output
 
