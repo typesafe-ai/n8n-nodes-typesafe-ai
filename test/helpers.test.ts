@@ -81,7 +81,7 @@ describe('buildQuestion', () => {
 
 	it('rejects blank instructions', () => {
 		expect(() => buildQuestion(context, { instructions: '  ', type: 'noul' }, 'q')).toThrow(
-			/instructions are empty/,
+			/'Instructions' is empty/,
 		);
 	});
 });
@@ -135,8 +135,14 @@ describe('buildQuestionsFromEntries', () => {
 		).toThrow(/used more than once/);
 	});
 
+	it('says how to fix an empty list in the error description', () => {
+		expect(() => buildQuestionsFromEntries(context, [])).toThrow(
+			expect.objectContaining({ description: 'Add at least one question' }),
+		);
+	});
+
 	it('rejects an empty list', () => {
-		expect(() => buildQuestionsFromEntries(context, [])).toThrow(/at least one question/);
+		expect(() => buildQuestionsFromEntries(context, [])).toThrow(/'Questions' is empty/);
 	});
 });
 

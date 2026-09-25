@@ -38,8 +38,8 @@ const questionEntryFields: INodeProperties[] = [
 		type: 'string',
 		required: true,
 		default: '',
-		placeholder: 'is_urgent',
-		description: 'The key this answer is returned under. It is not sent to the model.',
+		placeholder: 'e.g. is_urgent',
+		description: 'The field this answer is returned under. It is not sent to the model.',
 	},
 	{
 		displayName: 'Instructions',
@@ -47,7 +47,7 @@ const questionEntryFields: INodeProperties[] = [
 		type: 'string',
 		required: true,
 		default: '',
-		placeholder: 'Is this ticket urgent?',
+		placeholder: 'e.g. Is this ticket urgent?',
 		description: 'The question to ask about the state',
 	},
 	{
@@ -70,7 +70,7 @@ const questionEntryFields: INodeProperties[] = [
 			],
 		},
 		displayOptions: { show: { type: ['choice'] } },
-		description: `Between ${OPTION_BOUNDS.min} and ${OPTION_BOUNDS.max} options to choose between. Their order carries no meaning. To supply options generated from data, switch Questions Format to Using Raw JSON.`,
+		description: `Between ${OPTION_BOUNDS.min} and ${OPTION_BOUNDS.max} options to choose between. Their order carries no meaning. To supply options generated from data, switch 'Questions Format' to 'Using Raw JSON'.`,
 		options: [
 			{
 				name: 'option',
@@ -181,7 +181,7 @@ const evaluateOperation = {
 	name: 'Evaluate',
 	value: 'evaluate',
 	description: 'Evaluate the state against system one questions and output answers',
-	action: 'Evaluate a state against system one questions',
+	action: 'Evaluate state against system one questions',
 };
 
 const routeOperation = {
@@ -189,7 +189,7 @@ const routeOperation = {
 	value: 'route',
 	description:
 		'Evaluate the state against a system one question and send the item to the matching output',
-	action: 'Route an item by a system one question',
+	action: 'Route item by system one question',
 };
 
 const operationProperty = {
@@ -231,7 +231,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 				displayName: 'By ID',
 				name: 'id',
 				type: 'string',
-				placeholder: 'jev-latest',
+				placeholder: 'e.g. jev-latest',
 			},
 		],
 	},
@@ -339,7 +339,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		required: true,
 		default: '',
 		typeOptions: { rows: 2 },
-		placeholder: 'Which department should handle this?',
+		placeholder: 'e.g. Which department should handle this?',
 		displayOptions: { show: { operation: ['route'] } },
 		description: 'The question the model answers to route the item',
 	},
@@ -424,7 +424,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		noDataExpression: true,
 		displayOptions: { show: { operation: ['route'], routeQuestionType: ['noul'] } },
 		description: 'What an answer near 1 means. Also labels the output.',
-		placeholder: 'Needs a reply today',
+		placeholder: 'e.g. Needs a reply today',
 	},
 	{
 		displayName: 'True Probability Threshold',
@@ -435,7 +435,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		typeOptions: { minValue: 0, maxValue: 1, numberPrecision: 2 },
 		displayOptions: { show: { operation: ['route'], routeQuestionType: ['noul'] } },
 		description: 'Items answered at or above this go to the True output',
-		hint: 'Leave a gap above the false threshold to get an Uncertain output (0.0 - 1.0)',
+		hint: "Leave a gap above 'False Probability Threshold' to get an Uncertain output (0.0 - 1.0)",
 	},
 	{
 		displayName: 'False Means',
@@ -445,7 +445,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		noDataExpression: true,
 		displayOptions: { show: { operation: ['route'], routeQuestionType: ['noul'] } },
 		description: 'What an answer near 0 means. Also labels the output.',
-		placeholder: 'Can wait',
+		placeholder: 'e.g. Can wait',
 	},
 	{
 		displayName: 'False Probability Threshold',
@@ -456,7 +456,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		typeOptions: { minValue: 0, maxValue: 1, numberPrecision: 2 },
 		displayOptions: { show: { operation: ['route'], routeQuestionType: ['noul'] } },
 		description: 'Items answered at or below this go to the False output',
-		hint: 'Must not be above the true threshold (0.0 - 1.0)',
+		hint: "Must not be above 'True Probability Threshold' (0.0 - 1.0)",
 	},
 	{
 		displayName: 'Options',
@@ -474,7 +474,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 					"Whether to copy the incoming item's fields and binary data into the output. If an incoming field has the same name as one this node adds, such as answers or route, the node's value replaces it.",
 			},
 			{
-				displayName: 'Simplify Output',
+				displayName: 'Simplify',
 				name: 'simplify',
 				type: 'boolean',
 				default: true,

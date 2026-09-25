@@ -97,11 +97,11 @@ The node writes these fields to each item:
 | `answers` | Evaluate: all the answers, keyed by question ID |
 | `route` | Route: the answer to the route question |
 | `model` | The full ID of the model that answered, including its version, such as `jev-1.13.0` |
-| `usage` | Token usage, when **Simplify Output** is off |
+| `usage` | Token usage, when **Simplify** is off |
 
 Three settings under **Options** change how the node calls the API and what it writes:
 
-- **Simplify Output** is on by default. It keeps each answer's `noul`, `choice` or `score`, plus `confidence` for question types that return it, under the API's field names. When it's off, each answer is the full answer object from the API, including `probabilities`, and the item also gets `usage`.
+- **Simplify** is on by default. It keeps each answer's `noul`, `choice` or `score`, plus `confidence` for question types that return it, under the API's field names. When it's off, each answer is the full answer object from the API, including `probabilities`, and the item also gets `usage`.
 - **Include Other Input Fields** is on by default. It keeps the incoming item's fields and binary data, then writes the node's fields on top, replacing any incoming field with the same name. When it's off, the item has only the node's fields.
 - **Timeout** is how long, in milliseconds, the node waits for the API to start responding. The default is 5000 and the minimum is 1000.
 

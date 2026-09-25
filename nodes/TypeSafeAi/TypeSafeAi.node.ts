@@ -44,7 +44,7 @@ function buildState(
 			'State',
 		);
 		if (typeof parsed !== 'object' || parsed === null) {
-			fail(context, 'State must be a JSON object or array');
+			fail(context, "'State' must be a JSON object or array");
 		}
 		return parsed;
 	}
@@ -57,7 +57,7 @@ function buildState(
 		return String(text);
 	}
 	if (typeof text !== 'string' || text.trim() === '') {
-		fail(context, 'State is empty. Enter the content to evaluate.');
+		fail(context, "'State' is empty", 'Enter the content to evaluate');
 	}
 	return text;
 }
@@ -88,7 +88,8 @@ function readThresholds(
 	if (trueThreshold < falseThreshold) {
 		fail(
 			context,
-			`True Probability Threshold (${trueThreshold}) is below False Probability Threshold (${falseThreshold}), so the two overlap. Raise the true threshold or lower the false one.`,
+			`'True Probability Threshold' (${trueThreshold}) is below 'False Probability Threshold' (${falseThreshold})`,
+			"Set 'True Probability Threshold' at or above 'False Probability Threshold'",
 		);
 	}
 	return { trueThreshold, falseThreshold };
@@ -156,7 +157,11 @@ function buildQuestions(
 			functions.getNodeParameter('routeInstructions', itemIndex) as string
 		).trim();
 		if (instructions === '') {
-			fail(context, 'Instructions are empty. Describe what the model should decide.');
+			fail(
+				context,
+				"'Instructions' is empty",
+				'Enter the question the model answers to route the item',
+			);
 		}
 		if (isNoulRoute(functions, itemIndex)) {
 			readThresholds(functions, context);
@@ -174,7 +179,7 @@ function buildQuestions(
 				[ROUTE_QUESTION_ID]: {
 					type: 'score',
 					instructions,
-					criteria: buildLevels(context, levels, 'Levels'),
+					criteria: buildLevels(context, levels, "'Levels'"),
 				},
 			};
 		}
@@ -183,7 +188,7 @@ function buildQuestions(
 			[ROUTE_QUESTION_ID]: {
 				type: 'choice',
 				instructions,
-				criteria: buildCriteriaMap(context, routes, 'route', 'Routes'),
+				criteria: buildCriteriaMap(context, routes, 'route', "'Routes'"),
 			},
 		};
 	}

@@ -313,7 +313,7 @@ describe('Route by Noul', () => {
 		);
 
 		await expect(TypeSafeAi.prototype.execute.call(functions)).rejects.toThrow(
-			/True Probability Threshold \(0.3\) is below False Probability Threshold \(0.7\)/,
+			/'True Probability Threshold' \(0.3\) is below 'False Probability Threshold' \(0.7\)/,
 		);
 	});
 
@@ -433,7 +433,7 @@ describe('Route by Score', () => {
 		);
 
 		await expect(TypeSafeAi.prototype.execute.call(functions)).rejects.toThrow(
-			/Levels: every level needs a description/,
+			/'Levels': every level needs a description/,
 		);
 	});
 

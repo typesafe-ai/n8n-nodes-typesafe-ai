@@ -11,8 +11,12 @@ export interface ItemContext {
 	itemIndex: number;
 }
 
-export function fail(context: ItemContext, message: string): never {
-	throw new NodeOperationError(context.node, message, { itemIndex: context.itemIndex });
+/** Stop on a configuration problem. The description says how to fix it. */
+export function fail(context: ItemContext, message: string, description?: string): never {
+	throw new NodeOperationError(context.node, message, {
+		itemIndex: context.itemIndex,
+		description,
+	});
 }
 
 export interface CriteriaEntry {
@@ -48,7 +52,7 @@ export function parseJsonParameter(context: ItemContext, raw: unknown, label: st
 	try {
 		return JSON.parse(raw);
 	} catch {
-		return fail(context, `${label} is not valid JSON`);
+		return fail(context, `'${label}' is not valid JSON`);
 	}
 }
 
@@ -100,7 +104,7 @@ export function buildQuestion(context: ItemContext, entry: QuestionEntry, id: st
 	const where = `Question "${id}"`;
 	const instructions = (entry.instructions ?? '').trim();
 	if (instructions === '') {
-		fail(context, `${where}: instructions are empty`);
+		fail(context, `${where}: 'Instructions' is empty`);
 	}
 	const type = entry.type ?? 'noul';
 	if (type === 'choice') {
@@ -140,13 +144,13 @@ export function buildQuestionsFromEntries(
 	entries: QuestionEntry[],
 ): IDataObject {
 	if (entries.length === 0) {
-		fail(context, 'Add at least one question');
+		fail(context, "'Questions' is empty", 'Add at least one question');
 	}
 	const questions: IDataObject = Object.create(null);
 	for (const entry of entries) {
 		const id = (entry.id ?? '').trim();
 		if (id === '') {
-			fail(context, 'Every question needs an ID');
+			fail(context, "Every question needs an 'ID'");
 		}
 		if (questions[id] !== undefined) {
 			fail(
@@ -162,7 +166,7 @@ export function buildQuestionsFromEntries(
 export function parseQuestionsJson(context: ItemContext, raw: unknown): IDataObject {
 	const parsed = parseJsonParameter(context, raw, 'Questions');
 	if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-		fail(context, 'Questions must be a JSON object keyed by question ID');
+		fail(context, "'Questions' must be a JSON object keyed by question ID");
 	}
 	return parsed as IDataObject;
 }
