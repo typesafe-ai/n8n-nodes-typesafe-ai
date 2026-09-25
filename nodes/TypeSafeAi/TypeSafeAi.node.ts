@@ -52,6 +52,10 @@ function buildState(
 	if (typeof text === 'object' && text !== null) {
 		return text;
 	}
+	// An expression can resolve to a number or boolean, which is sent as text
+	if (typeof text === 'number' || typeof text === 'boolean') {
+		return String(text);
+	}
 	if (typeof text !== 'string' || text.trim() === '') {
 		fail(context, 'State is empty. Enter the content to evaluate.');
 	}

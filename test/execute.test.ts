@@ -497,6 +497,22 @@ describe('Evaluate', () => {
 		});
 	});
 
+	it.each([
+		[42, '42'],
+		[false, 'false'],
+	])('sends a Text state of %s as the string %s', async (stateText, sent) => {
+		const { functions, request } = createFunctions(
+			{ ...evaluateParameters, stateText },
+			items,
+			() => evaluateResponse,
+		);
+		await TypeSafeAi.prototype.execute.call(functions);
+
+		const body = (request.mock.calls[0] as unknown as [unknown, { body: { state: unknown } }])[1]
+			.body;
+		expect(body.state).toBe(sent);
+	});
+
 	it('reports a 422 as one readable sentence', async () => {
 		const { functions } = createFunctions(evaluateParameters, items, () => ({
 			statusCode: 422,
