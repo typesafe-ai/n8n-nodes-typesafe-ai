@@ -15,7 +15,8 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  # The org's CI ruleset requires a passing check with this name
+  check:
     runs-on: ubuntu-latest
 
     steps:
