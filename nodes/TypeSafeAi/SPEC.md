@@ -65,7 +65,7 @@ Dev dependencies are exempt from rules 1–3.
 ## 3. Credential
 
 Identified as `typeSafeAiApi` and displayed as **TypeSafe AI API**.
-Documentation link: `https://docs.typesafe.ai/introduction/quickstart`. It MUST
+Documentation link: `https://docs.typesafe.ai/`. It MUST
 carry the node's light and dark icons.
 
 ### 3.1 Fields
@@ -119,7 +119,7 @@ The node's codex file MUST declare:
 | --- | --- |
 | `node` | `@typesafe-ai/n8n-nodes-typesafe-ai.typeSafeAi` |
 | `categories` | `["Development", "Utility"]` |
-| `resources.primaryDocumentation` | `https://docs.typesafe.ai/api` |
+| `resources.primaryDocumentation` | `https://docs.typesafe.ai` |
 | `resources.credentialDocumentation` | `https://docs.typesafe.ai/introduction/quickstart` |
 | `alias` | see below |
 
@@ -156,8 +156,8 @@ Required. Default **Evaluate**.
 
 | Label | Behaviour |
 | --- | --- |
-| Evaluate | Evaluate the state against the configured questions and return the answers. |
-| Route | Evaluate the state against one Choice question and send the item to the matching output. |
+| Evaluate | Evaluate the state against system one questions and output answers. |
+| Route | Evaluate the state against a system one question and send the item to the matching output. |
 
 The operation MUST NOT be settable by expression, so an AI Agent cannot change
 it at runtime.
@@ -223,13 +223,13 @@ question, each entry titled by its **ID**. Each entry has:
 | Question Type | yes | always | Choice, Noul (Yes/No) or Score. Default Noul. |
 | ID | yes | always | The key the answer is returned under. Not sent to the model. |
 | Instructions | yes | always | The question itself. |
-| Answer Options | yes | Choice | The list of options to choose between. See below. |
+| Choice Options | yes | Choice | The list of options to choose between. See below. |
 | Levels | yes | Score | The ordered list of levels. See below. |
 | True Means | no | Noul | What a yes (value near 1) means. |
 | False Means | no | Noul | What a no (value near 0) means. |
 
-**Answer Options** is a reorderable list nested inside the question, with an
-*Add Answer Option* button. Each entry is titled by its **Name**. Each entry
+**Choice Options** is a reorderable list nested inside the question, with an
+*Add Option* button. Each entry is titled by its **Name**. Each entry
 has:
 
 | Label | Required | Meaning |
@@ -257,7 +257,7 @@ is presentational only.
 Counts are bounded: two to 255 options, two to ten levels, and at least one
 question. Where the editor can enforce a bound it MUST, reporting it as a
 problem with the node before the workflow runs. It cannot do so for a list
-nested inside another list, which is the case for **Answer Options** and
+nested inside another list, which is the case for **Choice Options** and
 **Levels**.
 Every bound MUST therefore be checked at run time as well, which is in any
 case the only check that applies to **Using Raw JSON**.
@@ -281,7 +281,7 @@ A route is decided by one question, of either type.
 | Question Type | yes | Choice | always | Choice or Noul (Yes/No). |
 | Instructions | yes | — | always | What the model should decide. |
 | Routes | yes | — | Choice | A reorderable list of two to 255 routes; each entry becomes an output. |
-| Confidence Handling | no | Route to Best Option | Choice | See §8.3. |
+| Confidence Handling | no | Always Route | Choice | See §8.3. |
 | Confidence Threshold | no | `0.5` | Choice, and a Fallback output enabled | Range 0–1. |
 | True Means | no | — | Noul | What a yes (value near 1) means. Also labels the output. |
 | False Means | no | — | Noul | What a no (value near 0) means. Also labels the output. |
@@ -302,7 +302,7 @@ Each **Routes** entry is titled by its **Name**:
 | Label | Required | Meaning |
 | --- | --- | --- |
 | Name | yes | Sent to the API as the Choice option, and used as the output's label. |
-| Description | no | A description of that option, used as its rubric. |
+| Description | no | The criteria for choosing this option. |
 
 A route's **Name**, the **Question Type**, both meanings and both thresholds
 MUST NOT be settable by expression. Between them they decide how many outputs
@@ -454,7 +454,7 @@ Outputs for a **Choice**:
 2. When **Confidence Handling** is *Route to Separate Fallback Output*, one
    further output labelled `Fallback` is appended last. An item goes
    there when its confidence is below **Confidence Threshold**.
-3. When it is *Route to Best Option*, there is no extra output and every
+3. When it is *Always Route*, there is no extra output and every
    item follows the chosen route.
 
 Outputs for a **Noul**, in this order:

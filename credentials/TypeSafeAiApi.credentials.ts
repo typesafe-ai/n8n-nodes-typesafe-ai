@@ -13,7 +13,7 @@ export class TypeSafeAiApi implements ICredentialType {
 
 	displayName = 'TypeSafe AI API';
 
-	documentationUrl = 'https://docs.typesafe.ai/introduction/quickstart';
+	documentationUrl = 'https://docs.typesafe.ai/';
 
 	icon: Icon = {
 		light: 'file:../nodes/TypeSafeAi/typeSafeAi.svg',
@@ -28,7 +28,7 @@ export class TypeSafeAiApi implements ICredentialType {
 			typeOptions: { password: true },
 			required: true,
 			default: '',
-			description: 'Create one in the TypeSafe AI console under API keys',
+			description: 'Create one in the TypeSafe AI console',
 		},
 		{
 			displayName: 'Base URL',

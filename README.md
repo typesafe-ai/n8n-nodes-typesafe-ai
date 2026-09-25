@@ -59,7 +59,7 @@ Evaluates one state against a single question and sends the item to the output m
 
 **Confidence Handling** decides what happens when the model is unsure:
 
-- *Route to Best Option* (the default) sends every item to its chosen route, however unsure the model was.
+- *Always Route* (the default) sends every item to the highest-probability option, regardless of confidence.
 - *Route to Separate Fallback Output* appends one extra output, `Fallback`, and sends items answered below **Confidence Threshold** there instead of to the chosen route.
 
 **Noul (Yes/No)** — asks one yes/no question and splits on the probability of yes. There are two outputs, labelled with **True Means** and **False Means** where you give them.

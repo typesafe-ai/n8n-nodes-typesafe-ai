@@ -27,9 +27,9 @@ const questionEntryFields: INodeProperties[] = [
 		required: true,
 		default: 'noul',
 		options: [
-			{ name: 'Choice', value: 'choice', description: 'Pick one of your options' },
+			{ name: 'Choice', value: 'choice', description: 'Pick one from a list of options' },
 			{ name: 'Noul (Yes/No)', value: 'noul', description: 'Return the probability of yes' },
-			{ name: 'Score', value: 'score', description: 'Rate against ordered levels' },
+			{ name: 'Score', value: 'score', description: 'Rate against semantically defined levels' },
 		],
 	},
 	{
@@ -51,7 +51,7 @@ const questionEntryFields: INodeProperties[] = [
 		description: 'The question to ask about the state',
 	},
 	{
-		displayName: 'Answer Options',
+		displayName: 'Choice Options',
 		name: 'choiceOptions',
 		type: 'fixedCollection',
 		// n8n cannot enforce minRequiredFields on a list nested inside another
@@ -62,7 +62,7 @@ const questionEntryFields: INodeProperties[] = [
 			sortable: true,
 			fixedCollection: { itemTitle: '={{ $collection.item.value.name }}' },
 		},
-		placeholder: 'Add Answer Option',
+		placeholder: 'Add Option',
 		default: {
 			option: [
 				{ name: '', description: '' },
@@ -74,7 +74,7 @@ const questionEntryFields: INodeProperties[] = [
 		options: [
 			{
 				name: 'option',
-				displayName: 'Answer Option',
+				displayName: 'Option',
 				values: [
 					{
 						displayName: 'Name',
@@ -161,23 +161,23 @@ const routeEntryFields: INodeProperties[] = [
 		name: 'description',
 		type: 'string',
 		default: '',
-		description: 'A description of this route, used as its rubric',
+		description: 'The criteria for choosing this option',
 	},
 ];
 
 const evaluateOperation = {
 	name: 'Evaluate',
 	value: 'evaluate',
-	description: 'Evaluate the state against the configured questions and return the answers',
-	action: 'Evaluate a state against typed questions',
+	description: 'Evaluate the state against system one questions and output answers',
+	action: 'Evaluate a state against system one questions',
 };
 
 const routeOperation = {
 	name: 'Route',
 	value: 'route',
 	description:
-		'Evaluate the state against one choice question and send the item to the matching output',
-	action: 'Route an item by a typed question',
+		'Evaluate the state against a system one question and send the item to the matching output',
+	action: 'Route an item by a system one question',
 };
 
 const operationProperty = {
@@ -207,8 +207,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		type: 'resourceLocator',
 		required: true,
 		default: { mode: 'list', value: 'jev-latest', cachedResultName: 'jev-latest' },
-		description:
-			'Aliases such as jev-latest move with every new release. Pin a version such as jev-1.13.0 to keep answers stable.',
+		description: 'Which model to use',
 		modes: [
 			{
 				displayName: 'From List',
@@ -220,8 +219,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 				displayName: 'By ID',
 				name: 'id',
 				type: 'string',
-				placeholder: 'jev-1.13.0',
-				hint: 'Versioned IDs are accepted even when they are not in the list',
+				placeholder: 'jev-latest',
 			},
 		],
 	},
@@ -246,8 +244,8 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		default: '',
 		typeOptions: { rows: 4 },
 		displayOptions: { show: { stateFormat: ['text'] } },
-		description: 'The content to evaluate. Every question sees this same state.',
-		placeholder: 'Add context for TypeSafe to evaluate',
+		description: 'The content to evaluate',
+		placeholder: 'Add content for TypeSafe to evaluate',
 	},
 	{
 		displayName: 'State',
@@ -256,8 +254,8 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		required: true,
 		default: '{}',
 		displayOptions: { show: { stateFormat: ['json'] } },
-		description: 'The content to evaluate. Every question sees this same state.',
-		placeholder: 'Add context for TypeSafe to evaluate',
+		description: 'The content to evaluate',
+		placeholder: 'Add content for TypeSafe to evaluate',
 	},
 	{
 		displayName: 'Questions Format',
@@ -354,14 +352,14 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		displayOptions: { show: { operation: ['route'], routeQuestionType: ['choice'] } },
 		options: [
 			{
-				name: 'Route to Best Option',
+				name: 'Always Route',
 				value: 'bestOption',
-				description: 'Every item follows the chosen route, however unsure the model was',
+				description: 'Send all items to highest probability option, regardless of confidence',
 			},
 			{
 				name: 'Route to Separate Fallback Output',
 				value: 'separateOutput',
-				description: 'Send unsure items to an extra output instead of the chosen route',
+				description: 'Send low-confidence items to an extra output',
 			},
 		],
 	},
