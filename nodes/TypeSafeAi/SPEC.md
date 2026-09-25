@@ -156,8 +156,8 @@ Required. Default **Evaluate**.
 
 | Label | Behaviour |
 | --- | --- |
-| Evaluate | Evaluate the state against system one questions and output answers. |
-| Route | Evaluate the state against a system one question and send the item to the matching output. |
+| Evaluate | Evaluate the state against System One questions and output answers. |
+| Route | Evaluate the state against a System One question and send the item to the matching output. |
 
 The operation MUST NOT be settable by expression, so an AI Agent cannot change
 it at runtime.

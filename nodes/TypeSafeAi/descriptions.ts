@@ -180,16 +180,16 @@ const routeLevelFields: INodeProperties[] = [
 const evaluateOperation = {
 	name: 'Evaluate',
 	value: 'evaluate',
-	description: 'Evaluate the state against system one questions and output answers',
-	action: 'Evaluate state against system one questions',
+	description: 'Evaluate the state against System One questions and output answers',
+	action: 'Evaluate state against System One questions',
 };
 
 const routeOperation = {
 	name: 'Route',
 	value: 'route',
 	description:
-		'Evaluate the state against a system one question and send the item to the matching output',
-	action: 'Route item by system one question',
+		'Evaluate the state against a System One question and send the item to the matching output',
+	action: 'Route item by System One question',
 };
 
 const operationProperty = {
