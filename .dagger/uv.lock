@@ -328,7 +328,7 @@ wheels = [
 ]
 
 [[package]]
-name = "typesafe-nodes"
+name = "n8n-nodes-typesafe-ai"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
