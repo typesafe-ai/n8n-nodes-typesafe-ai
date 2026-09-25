@@ -1,0 +1,22 @@
+{
+  "name": "TypesafeNodes",
+  "engineVersion": "v0.21.8",
+  "sdk": {
+    "source": "python"
+  },
+  "toolchains": [
+    {
+      "name": "zizmor",
+      "source": "github.com/typesafe-ai/daggerverse/zizmor@main",
+      "pin": "f67568baddc6bce2d456a319ef5537f803de57ac"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "github",
+      "source": "github.com/typesafe-ai/daggerverse/github@main",
+      "pin": "f67568baddc6bce2d456a319ef5537f803de57ac"
+    }
+  ],
+  "source": ".dagger"
+}

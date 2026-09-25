@@ -12,6 +12,7 @@ concurrency:
 
 permissions:
   contents: read
+  statuses: read
 
 jobs:
   # The org's CI ruleset requires a passing check with this name
@@ -41,3 +42,15 @@ jobs:
 
       - name: Run build
         run: 'npm run build'
+
+      - name: Wait for Dagger Cloud checks
+        uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
+        with:
+          version: "0.21.8"
+          call: |
+            wait-dagger-checks
+              --repo=${{ github.repository }}
+              --ref=${{ github.event.pull_request.head.sha || github.sha }}
+              --token=env:GITHUB_TOKEN
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
