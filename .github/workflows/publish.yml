@@ -1,44 +1,6 @@
-# Publishes @typesafe-ai/n8n-nodes-typesafe-ai to npm, with a provenance
-# statement, when a version tag such as 0.9.0 is pushed.
-#
-# The work is split in two jobs:
-#
-# - build has read-only access. It checks the tag, installs without running
-#   dependency scripts, runs the lint, tests and build, and packs the package.
-# - publish holds the npm publish rights. It runs in the `npm` environment and
-#   publishes the packed tarball from build. It installs and runs no project
-#   code, so no dependency can reach those rights.
-#
-# ─── ONE-TIME SETUP ────────────────────────────────────────────────────────────
-#
-# 1. GitHub: Settings → Environments → create `npm`. Add required reviewers,
-#    and limit deployment to tags matching `*.*.*`.
-#
-# 2. First publish only: the package has to exist on npm before a trusted
-#    publisher can be added. Create a short-lived npm granular access token
-#    with read and write access to the @typesafe-ai scope, and add it as the
-#    `NPM_TOKEN` secret of the `npm` environment. The provenance statement is
-#    signed by GitHub either way.
-#
-# 3. After the first publish: on npmjs.com, add a trusted publisher to the
-#    package:
-#      Publisher:     GitHub Actions
-#      Organization:  typesafe-ai
-#      Repository:    n8n-nodes-typesafe-ai
-#      Workflow:      publish.yml
-#      Environment:   npm
-#    and allow it to publish directly. Then delete the NPM_TOKEN secret and
-#    revoke the token.
-#
-# ─── RELEASING ─────────────────────────────────────────────────────────────────
-#
-# 1. Set the new version in package.json and CHANGELOG.md, and merge to main.
-# 2. Tag the merged commit with the same version and push the tag:
-#      git tag 0.9.0 && git push origin 0.9.0
-#
-# The build job stops unless the tag equals the package.json version and the
-# tagged commit is on main. A version with a prerelease part, such as
-# 1.0.0-rc.1, is published under the `next` dist-tag.
+# Publishes the package to npm, with a provenance statement, when a version
+# tag is pushed. The build job has read-only access; the publish job holds the
+# publish rights and only publishes the tarball the build job packed.
 
 name: Publish
 
