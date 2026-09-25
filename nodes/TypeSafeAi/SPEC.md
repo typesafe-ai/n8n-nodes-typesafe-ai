@@ -54,8 +54,11 @@ Requirements:
    locations, and MUST NOT retain the scaffold's example entries.
 6. `n8n.strict` MUST be `true`.
 7. The package MUST be published from GitHub Actions with an npm provenance
-   statement.
-8. The repository MUST be public, `repository.url` MUST resolve to it, and the
+   statement. The job holding the publish rights MUST publish a tarball built
+   by an earlier job, and MUST NOT install or run dependency code.
+8. A release MUST be triggered by a tag equal to the `package.json` version,
+   on a commit that is on `main`.
+9. The repository MUST be public, `repository.url` MUST resolve to it, and the
    npm publisher MUST match the repository owner.
 
 Dev dependencies are exempt from rules 1–3.
@@ -90,6 +93,8 @@ carry the node's light and dark icons.
    MUST be ignored.
 3. The credential MUST offer a test that issues `GET {host}/v1/models` and
    reports success or failure to the user.
+4. The API key MUST be sent only to the effective host. A response that
+   redirects to another host MUST NOT receive it.
 
 ---
 
@@ -140,8 +145,9 @@ the node panel and search. This node is an ordinary transform node.
 
 Fields are identified by the label the user sees.
 
-1. A field MUST be shown only for the operations listed against it. Nothing
-   except **Operation** is unconditionally visible.
+1. A field MUST be shown only for the operations listed against it.
+   **Operation**, **Model**, **State Format**, **State** and **Options** are
+   shown for both operations.
 2. Fields within a list entry are displayed in the order the entry declares
    them. That order MUST read as the user fills the entry in: first the field
    that decides what the rest of the entry looks like, then the field
@@ -149,6 +155,9 @@ Fields are identified by the label the user sees.
    optional.
 3. Two fields meaning the same thing in different lists MUST carry the same
    label and occupy the same position in both.
+4. Copy follows n8n's UX guidelines: an example in a placeholder starts with
+   "e.g.", help text puts parameter names in single quotes, and action text
+   leaves out articles.
 
 ### 5.1 Operation
 
@@ -181,9 +190,6 @@ The user MUST be able to either:
 A directly entered ID MUST be accepted even when it does not appear in the
 list, because the API accepts versioned IDs it does not advertise.
 
-Help text MUST tell the user that aliases such as `jev-latest` move with new
-releases and that pinning a version keeps answers stable.
-
 ### 5.3 State
 
 **State Format** — required, both operations, default **Text**.
@@ -196,15 +202,14 @@ releases and that pinning a version keeps answers stable.
 
 **State** — shown for Text. Required, multi-line. If an expression resolves it
 to an object, that object MUST be sent as structured state rather than
-stringified. A blank value is an error.
+stringified. A number or boolean MUST be sent as its string form. A blank
+value is an error.
 
 **State** — shown for JSON. Required, JSON editor, defaulting to a minimal
 object. The value MUST parse to an object or array.
 
 Both state fields carry the same label. Only one is ever visible, so the user
 always sees a single field called **State**.
-
-Help text MUST state that every question sees the same state.
 
 ### 5.4 Questions — Evaluate only
 
@@ -281,7 +286,7 @@ A route is decided by one question, of any of the three types.
 | Question Type | yes | Choice | always | Choice, Noul (Yes/No) or Score. |
 | Instructions | yes | — | always | What the model should decide. |
 | Routes | yes | — | Choice | A reorderable list of two to 255 routes; each entry becomes an output. |
-| Confidence Handling | no | Always Route | Choice | See §8.3. |
+| Confidence Handling | yes | Always Route | Choice | See §8.3. |
 | Confidence Threshold | no | `0.5` | Choice, and a Fallback output enabled | Range 0–1. |
 | True Means | no | — | Noul | What a yes (value near 1) means. Also labels the output. |
 | False Means | no | — | Noul | What a no (value near 0) means. Also labels the output. |
@@ -304,7 +309,7 @@ Each **Routes** entry is titled by its **Name**:
 | Label | Required | Meaning |
 | --- | --- | --- |
 | Name | yes | Sent to the API as the Choice option, and used as the output's label. |
-| Description | no | The criteria for choosing this option. |
+| Description | no | The criteria for choosing this route. |
 
 Each **Levels** entry is titled and filled in exactly as a Score question's
 levels in §5.4.
@@ -324,7 +329,7 @@ A collection, shown for both operations unless noted.
 | Label | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | Include Other Input Fields | boolean | `true` | Keep the incoming item's fields alongside the result. |
-| Simplify Output | boolean | `true` | Keep each answer's value and confidence instead of returning the full response. Applies to both operations. |
+| Simplify | boolean | `true` | Keep each answer's value and confidence instead of returning the full response. Applies to both operations. |
 | Timeout | number, min 1000 | `5000` | Time in ms to wait for the server to send response headers (and start the response body) before aborting the request |
 
 There MUST NOT be an option for renaming the output field. See §8.4.
@@ -372,6 +377,10 @@ exactly as for a Noul question in §6.1. For a Score, its `criteria` are the
 Configuration problems MUST be reported against the item that caused them,
 before or instead of calling the API.
 
+Following n8n's UX guidelines, an error message MUST name the parameter at
+fault in single quotes, as in `'State' is empty`, and the error's description
+MUST say how to fix it where the message alone does not.
+
 ---
 
 ## 8. Output
@@ -406,7 +415,7 @@ One output item per input item:
    answer's value and `confidence` and leaves out `type`, `probabilities` and
    `legend`; it MUST NOT rename, derive or add a key.
 
-### 8.2 Evaluate, raw (Simplify Output off)
+### 8.2 Evaluate, raw (Simplify off)
 
 ```json
 { "answers": { }, "model": "jev-1.13.0", "usage": { "input_tokens": 296, "output_tokens": 20 } }
@@ -417,8 +426,8 @@ One output item per input item:
 ### 8.3 Route
 
 `route` MUST be the answer to the route question exactly as §8.1 or §8.2 would
-present it for the current **Simplify Output** setting. Token `usage` appears
-under the same rule as §8.2, only when **Simplify Output** is off.
+present it for the current **Simplify** setting. Token `usage` appears
+under the same rule as §8.2, only when **Simplify** is off.
 
 Choice, simplified and raw:
 
@@ -495,9 +504,10 @@ Score, simplified:
    kept and the node's fields written over them, and binary data is carried
    through. With it off, only the node's fields are emitted and binary data is
    dropped.
-3. An incoming field named `answers`, `route` or `model` is therefore
-   overwritten. This MUST be documented in the README; turning **Include Input
-   Fields** off is the way to avoid it.
+3. An incoming field with the same name as one the node writes — `answers`,
+   `route`, `model`, `usage` or `error` — is therefore overwritten. This
+   MUST be documented in the README; turning **Include Other Input Fields** off
+   keeps only the node's fields.
 
 ---
 
