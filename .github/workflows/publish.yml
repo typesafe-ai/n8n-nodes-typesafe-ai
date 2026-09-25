@@ -1,99 +1,154 @@
-# Publishes this n8n community node package to npm on every version tag push.
+# Publishes @typesafe-ai/n8n-nodes-typesafe-ai to npm, with a provenance
+# statement, when a version tag such as 0.9.0 is pushed.
 #
-# Starting May 1 2026, n8n requires all community nodes to be published via
-# GitHub Actions with npm provenance statements. This workflow satisfies that
-# requirement. Provenance lets anyone cryptographically verify that a package
-# was built by this exact workflow, from this exact repository and commit.
+# The work is split in two jobs:
 #
-# ─── PREREQUISITES ─────────────────────────────────────────────────────────────
-#
-# @n8n/node-cli ≥ 0.23.0 is required. Earlier versions do not support the
-# provenance flag passed by `npm run release` in CI, and the publish step will
-# fail. Check the version installed in this project with:
-#
-#   npm list @n8n/node-cli
-#
-# To upgrade, add @n8n/node-cli@latest as a dev dependency using your package manager.
+# - build has read-only access. It checks the tag, installs without running
+#   dependency scripts, runs the lint, tests and build, and packs the package.
+# - publish holds the npm publish rights. It runs in the `npm` environment and
+#   publishes the packed tarball from build. It installs and runs no project
+#   code, so no dependency can reach those rights.
 #
 # ─── ONE-TIME SETUP ────────────────────────────────────────────────────────────
 #
-# Option A — OIDC Trusted Publishing (recommended, no long-lived secrets):
-#   1. Log in to npmjs.com and open your package's settings.
-#   2. Under "Publish access" → "Trusted Publishers", click "Add a publisher".
-#   3. Select GitHub Actions and fill in:
-#        Repository owner: <your-github-username-or-org>
-#        Repository name:  <your-repo-name>
-#        Workflow name:    publish.yml
-#        Environment:      (leave blank unless you use GitHub Environments)
-#   4. Leave the NPM_TOKEN secret unset in this repository. GitHub's OIDC
-#      token is used instead — no secret ever touches your repo settings.
+# 1. GitHub: Settings → Environments → create `npm`. Add required reviewers,
+#    and limit deployment to tags matching `*.*.*`.
 #
-# Option B — npm Automation Token (fallback):
-#   1. On npmjs.com: Access Tokens → Generate New Token → Granular Access Token.
-#      Scope it to this package with "Read and write" publish permission.
-#   2. In GitHub: Settings → Secrets and variables → Actions → New secret.
-#      Name it NPM_TOKEN and paste the token value.
+# 2. First publish only: the package has to exist on npm before a trusted
+#    publisher can be added. Create a short-lived npm granular access token
+#    with read and write access to the @typesafe-ai scope, and add it as the
+#    `NPM_TOKEN` secret of the `npm` environment. The provenance statement is
+#    signed by GitHub either way.
 #
-# Both options work with --provenance. Provenance is signed by GitHub's OIDC
-# infrastructure regardless of how npm authentication is handled.
+# 3. After the first publish: on npmjs.com, add a trusted publisher to the
+#    package:
+#      Publisher:     GitHub Actions
+#      Organization:  typesafe-ai
+#      Repository:    n8n-nodes-typesafe-ai
+#      Workflow:      publish.yml
+#      Environment:   npm
+#    and allow it to publish directly. Then delete the NPM_TOKEN secret and
+#    revoke the token.
 #
-# ─── TAG CONVENTION ────────────────────────────────────────────────────────────
+# ─── RELEASING ─────────────────────────────────────────────────────────────────
 #
-# This workflow triggers on tags matching "*.*.*" (e.g. 0.2.0).
-# If you prefer tags with a "v" prefix (e.g. v0.2.0), change the filter to:
-#   tags: ['v*.*.*']
+# 1. Set the new version in package.json and CHANGELOG.md, and merge to main.
+# 2. Tag the merged commit with the same version and push the tag:
+#      git tag 0.9.0 && git push origin 0.9.0
 #
-# ─── RELEASE PROCESS ───────────────────────────────────────────────────────────
-#
-# Run the following command locally to start an interactive release:
-#
-#   npm run release
-#
-# This will lint, build, prompt for a version bump, update the changelog,
-# commit, tag, and push — which triggers this workflow to publish to npm.
+# The build job stops unless the tag equals the package.json version and the
+# tagged commit is on main. A version with a prerelease part, such as
+# 1.0.0-rc.1, is published under the `next` dist-tag.
 
 name: Publish
 
 on:
   push:
     tags:
-      # Matches 0.1.0, 1.2.3, 2.0.0-rc.1, etc.
-      # See "TAG CONVENTION" above if you prefer tags with a "v" prefix.
       - '*.*.*'
 
+permissions: {}
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
 jobs:
-  publish:
-    name: Publish to npm
+  build:
+    name: Build and test
     runs-on: ubuntu-latest
 
     permissions:
-      # Required to mint an OIDC token for npm provenance attestation.
-      id-token: write
-      # Scoped down from the default (write) for least-privilege publishing.
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history, so the tagged commit can be checked against main
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 'lts/*'
-          cache: 'npm'
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Check the tag
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "$GITHUB_REF_NAME" != "$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the package.json version $version"
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $GITHUB_REF_NAME points at a commit that is not on main"
+            exit 1
+          fi
 
       - name: Install dependencies
-        run: 'npm ci'
+        run: 'npm ci --ignore-scripts'
 
-      - name: Release
-        # Publishes to npm with a provenance attestation (requires id-token: write above).
-        # Lint and build run automatically as part of the release process.
-        #
-        # Option A (OIDC): leave NPM_TOKEN unset — the token step is skipped and
-        #   npm uses the OIDC exchange instead.
-        # Option B (token): set NPM_TOKEN in repo secrets — it is written to
-        #   .npmrc here before publishing.
+      - name: Run lint
+        run: 'npm run lint'
+
+      - name: Run tests
+        run: 'npm test'
+
+      - name: Run build
+        run: 'npm run build'
+
+      - name: Pack
+        run: mv "$(npm pack --ignore-scripts --silent)" package.tgz
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: package
+          path: package.tgz
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    name: Publish to npm
+    needs: build
+    runs-on: ubuntu-latest
+    environment: npm
+
+    permissions:
+      contents: read
+      # Signs the provenance statement, and authenticates a trusted publisher
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: package
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      # Trusted publishing needs npm 11.5.1 or later
+      - name: Check the npm version
         run: |
-          [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-          npm run release
+          node -e '
+            const [major, minor, patch] = process.argv[1].split(".").map(Number);
+            const ok = major > 11 || (major === 11 && (minor > 5 || (minor === 5 && patch >= 1)));
+            if (!ok) { console.error(`npm ${process.argv[1]} is older than 11.5.1`); process.exit(1); }
+          ' "$(npm --version)"
+
+      # Publishing the tarball runs no package scripts
+      - name: Publish
+        run: |
+          case "$GITHUB_REF_NAME" in
+            *-*) dist_tag=next ;;
+            *) dist_tag=latest ;;
+          esac
+          npm publish ./package.tgz --provenance --access public --tag "$dist_tag"
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Set only for the first publish. With it unset, npm authenticates
+          # through the trusted publisher.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
