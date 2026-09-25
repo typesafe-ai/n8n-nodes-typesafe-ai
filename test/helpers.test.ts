@@ -175,23 +175,16 @@ describe('simplifyAnswers', () => {
 		},
 	};
 
-	it('returns one nested value per question', () => {
+	it("keeps each answer's value and confidence under the API's field names", () => {
 		expect(simplifyAnswers(answers)).toEqual({
-			is_urgent: { value: 0.85 },
-			department: { value: 'billing', confidence: 1 },
-			frustration: { value: 2.29, level: 'Frustrated', confidence: 0.71 },
+			is_urgent: { noul: 0.85 },
+			department: { choice: 'billing', confidence: 1 },
+			frustration: { score: 2.29, confidence: 0.71 },
 		});
 	});
 
-	it('falls back to the level nearest the score when probabilities are missing', () => {
-		const simplified = simplifyAnswers({
-			frustration: { type: 'score', score: 2.29, legend: { '0': 'Calm', '2': 'Frustrated' } },
-		});
-		expect(simplified.frustration).toEqual({ value: 2.29, level: 'Frustrated' });
-	});
-
-	it('omits the level when there is no legend', () => {
-		expect(simplifyAnswers({ q: { type: 'score', score: 1 } })).toEqual({ q: { value: 1 } });
+	it('omits a confidence the API did not return', () => {
+		expect(simplifyAnswers({ q: { type: 'score', score: 1 } })).toEqual({ q: { score: 1 } });
 	});
 });
 
@@ -261,6 +254,38 @@ describe('configuredOutputs', () => {
 				falseThreshold: 0.5,
 			}),
 		).toHaveLength(2);
+	});
+
+	it('gives a Score one output per level, labelled with its text', () => {
+		expect(
+			configuredOutputs({
+				operation: 'route',
+				routeQuestionType: 'score',
+				routeLevels: { level: [{ level: 'Calm' }, { level: ' Frustrated ' }] },
+			}),
+		).toEqual([
+			{ type: 'main', displayName: 'Calm' },
+			{ type: 'main', displayName: 'Frustrated' },
+		]);
+	});
+
+	it('labels a blank level by its position, keeping its output', () => {
+		expect(
+			configuredOutputs({
+				operation: 'route',
+				routeQuestionType: 'score',
+				routeLevels: { level: [{ level: '' }, { level: 'Furious' }] },
+			}),
+		).toEqual([
+			{ type: 'main', displayName: 'Level 0' },
+			{ type: 'main', displayName: 'Furious' },
+		]);
+	});
+
+	it('keeps one output while a Score has no levels yet', () => {
+		expect(
+			configuredOutputs({ operation: 'route', routeQuestionType: 'score', routeLevels: {} }),
+		).toEqual([{ type: 'main' }]);
 	});
 
 	it('keeps one output while no route is named yet', () => {

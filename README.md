@@ -1,108 +1,138 @@
 # @typesafe-ai/n8n-nodes-typesafe-ai
 
-This is an n8n community node. It lets you use [TypeSafe AI](https://typesafe.ai) in your n8n workflows.
+This n8n community node lets your workflows call TypeSafe AI's [System One models](https://docs.typesafe.ai/concepts/system-one). You give a System One model a [state](https://docs.typesafe.ai/concepts/state), which is the content you want judged, plus typed questions about it. The model returns a structured answer to each question, with probabilities. Jev is TypeSafe's flagship model and the first System One model.
 
-TypeSafe AI answers typed questions about a piece of state — yes/no, a choice between your own options, or a score against your own rubric — and returns a calibrated probability with every answer, so you can branch on how sure the model actually is.
+The node has two operations. **Evaluate** adds the answers to each item. **Route** picks an output for each item based on the answer to one question.
 
-[n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/sustainable-use-license/) workflow automation platform.
+[n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/choose-n8n/faircode-license/) workflow automation platform.
 
 [Installation](#installation)
-[Operations](#operations)
 [Credentials](#credentials)
+[Operations](#operations)
+[Output](#output)
+[Errors](#errors)
 [Compatibility](#compatibility)
-[Usage](#usage)
 [Resources](#resources)
 [Version history](#version-history)
 
 ## Installation
 
-Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
+Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation, and use the package name `@typesafe-ai/n8n-nodes-typesafe-ai`.
+
+## Credentials
+
+Create an API key in the [TypeSafe console](https://console.typesafe.ai/keys). In n8n, add a **TypeSafe AI API** credential and paste the key into **API Key**. n8n checks the key when you save the credential.
 
 ## Operations
 
+Both operations send one request per input item. Each request includes the item's state, the selected **Model**, and the questions.
+
+**State Format** sets where the state comes from:
+
+| State Format | State sent |
+| --- | --- |
+| Text | The **State** field, as plain text |
+| JSON | The **State** field, parsed as a JSON object or array |
+| Input Item | The incoming item's JSON |
+
+All the questions in a request are asked about the same state. The [State](https://docs.typesafe.ai/concepts/state) page covers how to structure it.
+
+**Model** lists the models your API key can use. The [Models](https://docs.typesafe.ai/models) page describes each one and its aliases.
+
 ### Evaluate
 
-Evaluates one state against one or more questions and returns the answers on a single output. Each question is one of three types:
+Evaluate asks one or more questions about the state and adds all the answers to the item. Each question is one of TypeSafe's three [question types](https://docs.typesafe.ai/primitives):
 
-| Type | Answer |
+| Question Type | Answer |
 | --- | --- |
-| Noul (Yes/No) | The probability of yes, between 0 and 1 |
-| Choice | The option the model picked, plus a confidence |
-| Score | A weighted score and the most likely level, plus a confidence |
+| [Choice](https://docs.typesafe.ai/primitives/choice) | The option the model picked from your list, and its [confidence](https://docs.typesafe.ai/confidence) |
+| [Score](https://docs.typesafe.ai/primitives/score) | A position along your levels, and its confidence |
+| [Noul (Yes/No)](https://docs.typesafe.ai/primitives/noul) | The probability that the answer is yes, from 0 to 1 |
 
-Questions can be built with the fields in the node, or supplied as raw JSON when you generate them from data.
+You can build the questions with the node's fields. Or you can set **Questions Format** to **Using Raw JSON** and pass in a JSON object of questions in the API's format, such as one built by an earlier node. The [API reference](https://docs.typesafe.ai/api) documents that format.
 
-With **Simplify Output** on (the default) each answer is reduced to a `value`, plus `level` and `confidence` where the question type has them:
+Each answer goes in `answers`, under its question's **ID**:
 
 ```json
 {
   "answers": {
-    "is_urgent":   { "value": 0.95 },
-    "department":  { "value": "billing", "confidence": 0.81 },
-    "frustration": { "value": 1.05, "level": "Frustrated", "confidence": 0.92 }
+    "is_urgent":   { "noul": 0.95 },
+    "department":  { "choice": "billing", "confidence": 0.81 },
+    "frustration": { "score": 1.05, "confidence": 0.92 }
   },
   "model": "jev-1.13.0"
 }
 ```
 
-Turn it off to get the API's answers unchanged, along with token `usage`.
+When an AI Agent uses the node as a tool, the node runs Evaluate.
 
 ### Route
 
-Evaluates one state against a single question and sends the item to the output matching the answer. **Question Type** picks how it decides.
+Route asks one question and sends the item to the output that matches the answer. **Question Type** sets the kind of question and the outputs you get:
 
-**Choice** — every route you configure becomes its own output, labelled with the route's name.
+| Question Type | Outputs | An item goes to |
+| --- | --- | --- |
+| Choice | One per route, labelled with its **Name** | The route the model picked |
+| Noul (Yes/No) | True and False, labelled with **True Means** and **False Means** if you fill them in | True if at or above **True Probability Threshold**, False if at or below **False Probability Threshold** |
+| Score | One per level, labelled with the level's text | The level nearest the score |
+
+Each question type has its own way to add or change outputs:
+
+- **Choice: Fallback output.** Set **Confidence Handling** to **Route to Separate Fallback Output** to add a `Fallback` output. An item goes there when its answer's confidence is below **Confidence Threshold**.
+- **Noul: Uncertain output.** Both thresholds start at `0.5`, so every item goes to True or False. Set them apart, for example `0.8` and `0.2`, to add an `Uncertain` output for answers that fall between the two.
+- **Score: level boundaries.** Levels are numbered from 0, lowest first. The boundary between two levels is halfway between their numbers. A score from `0.5` to just under `1.5` goes to level 1, and a score exactly on a boundary goes to the higher level.
+
+The `route` field holds the answer in the same form Evaluate uses, and the output the item leaves from shows the decision.
 
 ```json
-{ "route": { "value": "billing", "confidence": 0.81, "lowConfidence": false }, "model": "jev-1.13.0" }
+{ "route": { "choice": "billing", "confidence": 0.81 }, "model": "jev-1.13.0" }
 ```
 
-**Confidence Handling** decides what happens when the model is unsure:
+## Output
 
-- *Always Route* (the default) sends every item to the highest-probability option, regardless of confidence.
-- *Route to Separate Fallback Output* appends one extra output, `Fallback`, and sends items answered below **Confidence Threshold** there instead of to the chosen route.
+The node writes these fields to each item:
 
-**Noul (Yes/No)** — asks one yes/no question and splits on the probability of yes. There are two outputs, labelled with **True Means** and **False Means** where you give them.
+| Field | Contents |
+| --- | --- |
+| `answers` | Evaluate: all the answers, keyed by question ID |
+| `route` | Route: the answer to the route question |
+| `model` | The full ID of the model that answered, including its version, such as `jev-1.13.0` |
+| `usage` | Token usage, when **Simplify Output** is off |
 
-```json
-{ "route": { "value": 0.85, "uncertain": false }, "model": "jev-1.13.0" }
-```
+Three settings under **Options** change how the node calls the API and what it writes:
 
-An item goes to the yes output at or above **True Probability Threshold**, and to the no output at or below **False Probability Threshold**. Both default to `0.5`, which splits every item one way or the other. Move them apart — say `0.8` and `0.2` — and a third output, `Uncertain`, appears for everything in between, so the model can decline to commit rather than guess.
+- **Simplify Output** is on by default. It keeps each answer's `noul`, `choice` or `score`, plus `confidence` for question types that return it, under the API's field names. When it's off, each answer is the full answer object from the API, including `probabilities`, and the item also gets `usage`.
+- **Include Other Input Fields** is on by default. It keeps the incoming item's fields and binary data, then writes the node's fields on top, replacing any incoming field with the same name. When it's off, the item has only the node's fields.
+- **Timeout** is how long, in milliseconds, the node waits for the API to start responding. The default is 5000 and the minimum is 1000.
 
-In both modes the `route` object is the answer exactly as Evaluate would return it, plus the flag naming the decision. With **Simplify Output** off you get the API's own answer and token `usage` instead.
+## Errors
 
-## Credentials
+When something goes wrong, the node stops and shows an error. A failed request shows the HTTP status and the API's error message. A setup problem, such as empty **Instructions** or a duplicate route name, shows a message saying what to fix.
 
-You need a TypeSafe AI account and an API key from the [console](https://console.typesafe.ai/keys). Create a **TypeSafe AI API** credential in n8n and paste the key into **API Key**. Use the credential's test button to confirm it works.
+In the node's **Settings**, turn on **Retry On Fail** to retry failed requests, including rate-limit errors (`429`).
+
+To keep the workflow running when an item fails, set **On Error**:
+
+- **Continue (using error output)** adds an error output to the node and sends each failed item there, with an `error` field.
+- **Continue** sends each failed item, with an `error` field, to one of the node's regular outputs:
+
+| Operation | Output the failed item goes to |
+| --- | --- |
+| Evaluate | The main output |
+| Route, Choice | `Fallback` if there is one, otherwise the first route |
+| Route, Noul (Yes/No) | `Uncertain` if there is one, otherwise False |
+| Route, Score | The first level |
 
 ## Compatibility
 
-Built and tested against the n8n version that `@n8n/node-cli` currently ships with (`n8n-workflow` 2.39). No known incompatibilities.
-
-## Usage
-
-### The state is shared by every question
-
-All questions in one Evaluate run see the same state, so a single request can answer several things about one ticket, message or record at once. **State Format** decides where that state comes from: plain **Text**, a **JSON** object or array, or the **Input Item** itself.
-
-### Input fields are kept, and can be overwritten
-
-**Include Other Input Fields** is on by default, so the incoming item's fields are kept alongside the result and its binary data is carried through. The node writes its own fields over them, which means an incoming field named `answers`, `route` or `model` is **replaced**. Turn **Include Other Input Fields** off if you need to keep such a field — the node then emits only its own fields, and drops binary data.
-
-### Pinning a model
-
-`jev-latest` moves with every new release. Pin a version such as `jev-1.13.0` in the **Model** field to keep answers stable over time. Versioned IDs are accepted even when they do not appear in the model list.
-
-### Errors
-
-A failed request surfaces with its HTTP status and the API's own description. Enable **Retry On Fail** on the node to retry rate-limited or overloaded requests, and **Continue On Fail** to emit the failing item with an `error` field and carry on with the rest. In Route, a failing item goes to the `Fallback` output where one is enabled, or to `Uncertain` when routing by a Noul, so a failure is never mistaken for a routing decision.
+Tested with n8n 2.40.
 
 ## Resources
 
-* [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
-* [TypeSafe AI API reference](https://docs.typesafe.ai/api)
 * [TypeSafe AI quickstart](https://docs.typesafe.ai/introduction/quickstart)
+* [TypeSafe AI documentation](https://docs.typesafe.ai)
+* [TypeSafe AI API reference](https://docs.typesafe.ai/api)
+* [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
 
 ## Version history
 

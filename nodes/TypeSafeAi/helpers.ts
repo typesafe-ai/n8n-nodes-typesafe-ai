@@ -167,37 +167,20 @@ export function parseQuestionsJson(context: ItemContext, raw: unknown): IDataObj
 	return parsed as IDataObject;
 }
 
-function resolveLevel(
-	legend: Record<string, string> | undefined,
-	probabilities: Record<string, number> | undefined,
-	score: number,
-): string | undefined {
-	if (legend === undefined) return undefined;
-	const ranked = Object.entries(probabilities ?? {});
-	if (ranked.length > 0) {
-		const best = ranked.reduce((winner, entry) => (entry[1] > winner[1] ? entry : winner));
-		return legend[best[0]];
-	}
-	const keys = Object.keys(legend);
-	if (keys.length === 0) return undefined;
-	const nearest = keys.reduce((winner, key) =>
-		Math.abs(Number(key) - score) < Math.abs(Number(winner) - score) ? key : winner,
-	);
-	return legend[nearest];
+/** The index of the level nearest the score. A score exactly between two levels goes to the higher one. */
+export function nearestLevel(score: number, levelCount: number): number {
+	return Math.min(Math.max(Math.round(score), 0), levelCount - 1);
 }
 
+/** The answer's own value and confidence, under the API's field names */
 export function simplifyAnswer(answer: Answer): IDataObject {
 	if (answer.type === 'noul') {
-		return { value: answer.noul };
+		return { noul: answer.noul };
 	}
 	if (answer.type === 'choice') {
-		return compact({ value: answer.choice, confidence: answer.confidence });
+		return compact({ choice: answer.choice, confidence: answer.confidence });
 	}
-	return compact({
-		value: answer.score,
-		level: resolveLevel(answer.legend, answer.probabilities, answer.score),
-		confidence: answer.confidence,
-	});
+	return compact({ score: answer.score, confidence: answer.confidence });
 }
 
 export function simplifyAnswers(answers: Record<string, Answer>): IDataObject {
@@ -212,6 +195,7 @@ export const configuredOutputs = (
 		operation?: string;
 		routeQuestionType?: string;
 		routes?: { route?: Array<{ name?: string }> };
+		routeLevels?: { level?: Array<{ level?: string }> };
 		confidenceHandling?: string;
 		routeTrueMeans?: string;
 		routeFalseMeans?: string;
@@ -233,6 +217,17 @@ export const configuredOutputs = (
 			outputs.push({ type: 'main', displayName: 'Uncertain' });
 		}
 		return outputs;
+	}
+	if (parameters.routeQuestionType === 'score') {
+		// A blank level keeps its output, so each output stays at its level's index
+		const levels = parameters.routeLevels?.level ?? [];
+		if (levels.length === 0) {
+			return [{ type: 'main' }];
+		}
+		return levels.map(({ level }, index) => ({
+			type: 'main',
+			displayName: (level ?? '').trim() || `Level ${index}`,
+		}));
 	}
 	const routes = parameters.routes?.route ?? [];
 	const outputs = routes

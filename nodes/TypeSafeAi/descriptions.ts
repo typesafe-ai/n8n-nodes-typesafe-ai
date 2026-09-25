@@ -165,6 +165,18 @@ const routeEntryFields: INodeProperties[] = [
 	},
 ];
 
+const routeLevelFields: INodeProperties[] = [
+	{
+		displayName: 'Level',
+		name: 'level',
+		type: 'string',
+		required: true,
+		default: '',
+		noDataExpression: true,
+		description: 'What this level describes. Also labels the output.',
+	},
+];
+
 const evaluateOperation = {
 	name: 'Evaluate',
 	value: 'evaluate',
@@ -313,6 +325,11 @@ export const typeSafeAiProperties: INodeProperties[] = [
 				value: 'noul',
 				description: 'Send the item by the probability of yes',
 			},
+			{
+				name: 'Score',
+				value: 'score',
+				description: 'Send the item to the level nearest the score',
+			},
 		],
 	},
 	{
@@ -342,6 +359,26 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		displayOptions: { show: { operation: ['route'], routeQuestionType: ['choice'] } },
 		description: `Between ${OPTION_BOUNDS.min} and ${OPTION_BOUNDS.max} routes. Each one becomes an output.`,
 		options: [{ name: 'route', displayName: 'Route', values: routeEntryFields }],
+	},
+	{
+		displayName: 'Levels',
+		name: 'routeLevels',
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: true,
+			sortable: true,
+			minRequiredFields: LEVEL_BOUNDS.min,
+			maxAllowedFields: LEVEL_BOUNDS.max,
+			fixedCollection: {
+				itemTitle:
+					'={{ [`Level ${$collection.item.index}`, $collection.item.value.level].filter(Boolean).join(": ") }}',
+			},
+		},
+		placeholder: 'Add Level',
+		default: { level: [{ level: '' }, { level: '' }] },
+		displayOptions: { show: { operation: ['route'], routeQuestionType: ['score'] } },
+		description: `Between ${LEVEL_BOUNDS.min} and ${LEVEL_BOUNDS.max} levels, ordered from lowest to highest. Each one becomes an output.`,
+		options: [{ name: 'level', displayName: 'Level', values: routeLevelFields }],
 	},
 	{
 		displayName: 'Confidence Handling',
@@ -434,7 +471,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 				type: 'boolean',
 				default: true,
 				description:
-					'Whether to keep the fields of the incoming item alongside the result. Fields named answers, route or model are overwritten.',
+					"Whether to copy the incoming item's fields and binary data into the output. If an incoming field has the same name as one this node adds, such as answers or route, the node's value replaces it.",
 			},
 			{
 				displayName: 'Simplify Output',
@@ -442,7 +479,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 				type: 'boolean',
 				default: true,
 				description:
-					'Whether to reduce each answer to its value instead of returning the full response',
+					"Whether to keep only each answer's value and confidence instead of returning the full response",
 			},
 			{
 				displayName: 'Timeout',

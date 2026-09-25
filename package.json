@@ -1,6 +1,6 @@
 {
 	"name": "@typesafe-ai/n8n-nodes-typesafe-ai",
-	"version": "0.1.0",
+	"version": "0.9.0",
 	"description": "Ask TypeSafe AI's System One models (Jev!) typed questions and route items by the answer, with calibrated probabilities",
 	"license": "MIT",
 	"homepage": "https://github.com/typesafe-ai/n8n-nodes-typesafe-ai#readme",

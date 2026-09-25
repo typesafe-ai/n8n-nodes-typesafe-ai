@@ -23,7 +23,7 @@ A single node exposing two operations:
 | Operation | Purpose |
 | --- | --- |
 | Evaluate | Evaluate one state against one or more typed questions. One main output. |
-| Route | Evaluate one state against a single Choice question and send the item to the matching output. Dynamic outputs. |
+| Route | Evaluate one state against a single Choice, Noul or Score question and send the item to the matching output. Dynamic outputs. |
 
 ---
 
@@ -274,11 +274,11 @@ is ever visible.
 
 ### 5.5 Routes — Route only
 
-A route is decided by one question, of either type.
+A route is decided by one question, of any of the three types.
 
 | Label | Required | Default | Shown when | Meaning |
 | --- | --- | --- | --- | --- |
-| Question Type | yes | Choice | always | Choice or Noul (Yes/No). |
+| Question Type | yes | Choice | always | Choice, Noul (Yes/No) or Score. |
 | Instructions | yes | — | always | What the model should decide. |
 | Routes | yes | — | Choice | A reorderable list of two to 255 routes; each entry becomes an output. |
 | Confidence Handling | no | Always Route | Choice | See §8.3. |
@@ -287,10 +287,12 @@ A route is decided by one question, of either type.
 | False Means | no | — | Noul | What a no (value near 0) means. Also labels the output. |
 | True Probability Threshold | no | `0.5` | Noul | At or above this, the item is a yes. Range 0–1. |
 | False Probability Threshold | no | `0.5` | Noul | At or below this, the item is a no. Range 0–1. |
+| Levels | yes | two empty entries | Score | A reorderable list of two to ten levels, lowest first; each entry becomes an output. |
 
 Confidence Handling and Confidence Threshold are offered only for a Choice,
 because the API returns no confidence for a Noul. The Noul equivalent is the
-gap between the two thresholds, per §8.3.
+gap between the two thresholds, per §8.3. A Score sends every item to the level
+nearest its score, per §8.3.
 
 The **True Probability Threshold** MUST NOT be below the **False Probability
 Threshold**. The two would then overlap, leaving an answer between them
@@ -304,8 +306,11 @@ Each **Routes** entry is titled by its **Name**:
 | Name | yes | Sent to the API as the Choice option, and used as the output's label. |
 | Description | no | The criteria for choosing this option. |
 
-A route's **Name**, the **Question Type**, both meanings and both thresholds
-MUST NOT be settable by expression. Between them they decide how many outputs
+Each **Levels** entry is titled and filled in exactly as a Score question's
+levels in §5.4.
+
+A route's **Name**, a level's **Level**, the **Question Type**, both meanings
+and both thresholds MUST NOT be settable by expression. Between them they decide how many outputs
 the node has and what each is called, and that is resolved in the editor before
 the workflow runs.
 
@@ -319,7 +324,7 @@ A collection, shown for both operations unless noted.
 | Label | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | Include Other Input Fields | boolean | `true` | Keep the incoming item's fields alongside the result. |
-| Simplify Output | boolean | `true` | Reduce each answer to its value instead of returning the full response. Applies to both operations. |
+| Simplify Output | boolean | `true` | Keep each answer's value and confidence instead of returning the full response. Applies to both operations. |
 | Timeout | number, min 1000 | `5000` | Time in ms to wait for the server to send response headers (and start the response body) before aborting the request |
 
 There MUST NOT be an option for renaming the output field. See §8.4.
@@ -357,7 +362,8 @@ node chooses and the user never sees. Its `instructions` are the
 For a Choice, its `criteria` map each route's **Name** to its **Description**
 text, or `null` when blank. For a Noul, its `criteria` carry the given **True
 Means** and **False Means**, and are omitted entirely when both are blank —
-exactly as for a Noul question in §6.1.
+exactly as for a Noul question in §6.1. For a Score, its `criteria` are the
+**Levels**, sent exactly as for a Score question in §6.1.
 
 ---
 
@@ -377,9 +383,9 @@ One output item per input item:
 ```json
 {
   "answers": {
-    "is_urgent":   { "value": 0.95 },
-    "department":  { "value": "billing", "confidence": 0.81 },
-    "frustration": { "value": 1.05, "level": "Frustrated", "confidence": 0.92 }
+    "is_urgent":   { "noul": 0.95 },
+    "department":  { "choice": "billing", "confidence": 0.81 },
+    "frustration": { "score": 1.05, "confidence": 0.92 }
   },
   "model": "jev-1.13.0"
 }
@@ -387,18 +393,18 @@ One output item per input item:
 
 | Question Type | Keys under each answer |
 | --- | --- |
-| Noul | `value` — the probability of yes (0–1). No `confidence`. |
-| Choice | `value` — the chosen option; `confidence` |
-| Score | `value` — the weighted score; `level` — the description of the most likely level; `confidence` |
+| Noul | `noul` — the probability of yes (0–1) |
+| Choice | `choice` — the chosen option; `confidence` |
+| Score | `score` — the position along the levels; `confidence` |
 
 1. The container MUST be named `answers` and keyed by question ID.
 2. Each answer MUST be a nested object, not a set of sibling keys distinguished
    by suffix. A question may legitimately be named after another question's
    attribute, and nesting makes that impossible to collide.
 3. `model` MUST be the versioned ID the API reports, not the requested alias.
-4. `level` is the description of the highest-probability level. Where the API
-   returns no probabilities, the level nearest the returned score is used.
-   Where neither resolves, `level` is omitted.
+4. Each key MUST carry the API's own name and value. Simplifying keeps the
+   answer's value and `confidence` and leaves out `type`, `probabilities` and
+   `legend`; it MUST NOT rename, derive or add a key.
 
 ### 8.2 Evaluate, raw (Simplify Output off)
 
@@ -411,23 +417,18 @@ One output item per input item:
 ### 8.3 Route
 
 `route` MUST be the answer to the route question exactly as §8.1 or §8.2 would
-present it for the current **Simplify Output** setting, plus one key naming the
-decision: `lowConfidence` for a Choice, `uncertain` for a Noul. Nothing else is
-added, and the chosen option is therefore `value` when simplified. Token
-`usage` appears under the same rule as §8.2, only when **Simplify Output** is
-off.
+present it for the current **Simplify Output** setting. Token `usage` appears
+under the same rule as §8.2, only when **Simplify Output** is off.
 
 Choice, simplified and raw:
 
 ```json
-{ "route": { "value": "billing", "confidence": 0.81, "lowConfidence": false },
-  "model": "jev-1.13.0" }
+{ "route": { "choice": "billing", "confidence": 0.81 }, "model": "jev-1.13.0" }
 ```
 
 ```json
 { "route": { "type": "choice", "choice": "billing", "confidence": 0.81,
-             "probabilities": { "billing": 0.88, "technical": 0.12 },
-             "lowConfidence": false },
+             "probabilities": { "billing": 0.88, "technical": 0.12 } },
   "model": "jev-1.13.0",
   "usage": { "input_tokens": 296, "output_tokens": 20 } }
 ```
@@ -435,11 +436,11 @@ Choice, simplified and raw:
 Noul, simplified and raw:
 
 ```json
-{ "route": { "value": 0.85, "uncertain": false }, "model": "jev-1.13.0" }
+{ "route": { "noul": 0.85 }, "model": "jev-1.13.0" }
 ```
 
 ```json
-{ "route": { "type": "noul", "noul": 0.85, "uncertain": false },
+{ "route": { "type": "noul", "noul": 0.85 },
   "model": "jev-1.13.0",
   "usage": { "input_tokens": 296, "output_tokens": 20 } }
 ```
@@ -470,7 +471,22 @@ Outputs for a **Noul**, in this order:
    there. With the thresholds equal there is no gap, no third output, and every
    item is a yes or a no.
 
-7. The outputs shown in the editor MUST match those produced at runtime.
+Outputs for a **Score**:
+
+7. One output per level, in the order the levels are listed, labelled with the
+   level's text, or `Level N` (its position, from 0) while that is blank.
+8. An item goes to the level nearest its score: level *i* takes scores from
+   *i* − 0.5 up to, but not including, *i* + 0.5. A score exactly halfway goes
+   to the higher level. A score below the lowest level or above the highest
+   goes to that end.
+
+Score, simplified:
+
+```json
+{ "route": { "score": 1.3, "confidence": 0.9 }, "model": "jev-1.13.0" }
+```
+
+9. The outputs shown in the editor MUST match those produced at runtime.
 
 ### 8.4 Common rules
 
@@ -507,6 +523,10 @@ field, and processing MUST continue with the remaining items. It goes to the
 `Fallback` output where one is enabled, so that a failure is never
 mistaken for a routing decision, and to the first output otherwise. Routing by
 a Noul has no Fallback, so a failing item goes to the last output there —
-`Uncertain` where one exists, and the no output otherwise.
+`Uncertain` where one exists, and the no output otherwise. Routing by a Score
+has neither, so a failing item goes to the first output.
 **Include Other Input Fields** applies to it as it does to any other item.
+The failing item MUST carry the error itself as well as the `error` field, so
+that n8n's **Continue (using error output)** setting moves it to the error
+output.
 Otherwise the error stops the node and identifies the item that failed.
