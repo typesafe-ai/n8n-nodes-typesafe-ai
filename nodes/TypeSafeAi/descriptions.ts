@@ -154,14 +154,14 @@ const routeEntryFields: INodeProperties[] = [
 		required: true,
 		default: '',
 		noDataExpression: true,
-		description: 'Sent to the model as the option, and used as the label of this output',
+		description: 'Sent to the model as a choice, and used as the label of this output',
 	},
 	{
 		displayName: 'Description',
 		name: 'description',
 		type: 'string',
 		default: '',
-		description: 'The criteria for choosing this option',
+		description: 'The criteria for choosing this route',
 	},
 ];
 
@@ -341,7 +341,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 		typeOptions: { rows: 2 },
 		placeholder: 'Which department should handle this?',
 		displayOptions: { show: { operation: ['route'] } },
-		description: 'What the model should decide when picking a route',
+		description: 'The question the model answers to route the item',
 	},
 	{
 		displayName: 'Routes',
@@ -391,7 +391,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 			{
 				name: 'Always Route',
 				value: 'bestOption',
-				description: 'Send all items to highest probability option, regardless of confidence',
+				description: 'Send all items to the highest probability route, regardless of confidence',
 			},
 			{
 				name: 'Route to Separate Fallback Output',
@@ -414,7 +414,7 @@ export const typeSafeAiProperties: INodeProperties[] = [
 			},
 		},
 		description: 'Items answered with less confidence than this go to the Fallback output',
-		hint: 'How sure the model needs to be before routing to an option (0.0 - 1.0).<br /><a href="https://docs.typesafe.ai/confidence" target="_blank">See docs</a> for more information on how TypeSafe reports confidence.',
+		hint: 'How sure the model needs to be before an item follows its route (0.0 - 1.0).<br /><a href="https://docs.typesafe.ai/confidence" target="_blank">See docs</a> for more information on how TypeSafe reports confidence.',
 	},
 	{
 		displayName: 'True Means',
