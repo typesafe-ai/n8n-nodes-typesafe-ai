@@ -1,5 +1,5 @@
 {
-  "name": "TypesafeNodes",
+  "name": "n8n-nodes-typesafe-ai",
   "engineVersion": "v0.21.8",
   "sdk": {
     "source": "python"
