@@ -33,8 +33,10 @@ export class TypeSafeAiApi implements ICredentialType {
 		{
 			displayName: 'Base URL',
 			name: 'baseUrl',
-			type: 'hidden',
+			type: 'string',
 			default: DEFAULT_BASE_URL,
+			description: 'Leave the default TypeSafe endpoint or set a custom API base URL',
+			placeholder: 'https://api.typesafe.ai',
 		},
 	];
 
