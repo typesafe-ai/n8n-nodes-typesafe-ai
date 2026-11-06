@@ -24,6 +24,8 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 Create an API key in the [TypeSafe console](https://console.typesafe.ai/keys). In n8n, add a **TypeSafe AI API** credential and paste the key into **API Key**. n8n checks the key when you save the credential.
 
+To route requests through a proxy or gateway that implements the TypeSafe API, turn on **Use Custom Base URL** and enter its address in **Custom Base URL**, without the `/v1` path. Use the API key that gateway expects. The key is sent to that host, so only use a gateway you trust. The credential check calls `GET /v1/models` on it, so the gateway needs that route as well as `POST /v1/systemone`.
+
 ## Operations
 
 Both operations send one request per input item. Each request includes the item's state, the selected **Model**, and the questions.

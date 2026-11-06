@@ -31,6 +31,25 @@ export class TypeSafeAiApi implements ICredentialType {
 			description: 'Create one in the TypeSafe AI console',
 		},
 		{
+			displayName: 'Use Custom Base URL',
+			name: 'useCustomBaseUrl',
+			type: 'boolean',
+			default: false,
+			description:
+				'Whether to send requests to a proxy or gateway that implements the TypeSafe API, instead of TypeSafe AI',
+		},
+		{
+			displayName: 'Custom Base URL',
+			name: 'customBaseUrl',
+			type: 'string',
+			required: true,
+			default: '',
+			placeholder: 'e.g. https://gateway.example.com/typesafe',
+			description:
+				'The host to call, without the /v1 path. The API key is sent to it, so only use a gateway you trust.',
+			displayOptions: { show: { useCustomBaseUrl: [true] } },
+		},
+		{
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'hidden',

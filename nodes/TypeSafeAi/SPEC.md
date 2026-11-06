@@ -76,21 +76,27 @@ carry the node's light and dark icons.
 | Label | Visible | Required | Default | Purpose |
 | --- | --- | --- | --- | --- |
 | API Key | yes, masked | yes | — | Bearer token for the API |
+| Use Custom Base URL | yes | no | off | Opts in to a proxy or gateway host |
+| Custom Base URL | only when Use Custom Base URL is on | yes, when shown | — | Host the node calls instead |
 | Base URL | no | no | `https://api.typesafe.ai` | Host the node calls |
 
 1. The API key MUST be stored and displayed as a password field.
 2. The base URL MUST be present in the credential schema but hidden from the
    credential UI, so n8n Connect can set it without exposing a free-text host
    box to every user.
-3. No secret may be hardcoded anywhere in the package.
+3. The custom base URL MUST stay hidden until the user turns on Use Custom
+   Base URL, so the default credential form shows no host box. Its
+   description MUST warn that the API key is sent to that host.
+4. No secret may be hardcoded anywhere in the package.
 
 ### 3.2 Behaviour
 
 1. Every request MUST authenticate with the header
    `Authorization: Bearer <api key>`.
-2. The effective host is the base URL when it holds a non-blank value,
-   otherwise the default above. Surrounding whitespace and trailing slashes
-   MUST be ignored.
+2. The effective host is the custom base URL when Use Custom Base URL is on
+   and it holds a non-blank value. Otherwise it is the base URL when that
+   holds a non-blank value, and otherwise the default above. Surrounding
+   whitespace and trailing slashes MUST be ignored.
 3. The credential MUST offer a test that issues `GET {host}/v1/models` and
    reports success or failure to the user.
 4. The API key MUST be sent only to the effective host. A response that

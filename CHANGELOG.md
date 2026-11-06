@@ -4,6 +4,14 @@ All notable changes to this package are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **Custom base URL.** The credential's **Use Custom Base URL** switch shows a
+  **Custom Base URL** field, so requests can go through a proxy or gateway
+  that implements the TypeSafe API. The default credential form is unchanged.
+
 ## 0.10.0
 
 ### Added

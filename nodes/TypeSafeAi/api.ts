@@ -15,13 +15,28 @@ export const DEFAULT_BASE_URL = 'https://api.typesafe.ai';
 export const OPTION_BOUNDS = { min: 2, max: 255 };
 export const LEVEL_BOUNDS = { min: 2, max: 10 };
 
+function trimBaseUrl(raw: unknown): string {
+	return typeof raw === 'string' ? raw.trim().replace(/\/+$/, '') : '';
+}
+
 export function resolveBaseUrl(raw: unknown): string {
-	const trimmed = typeof raw === 'string' ? raw.trim().replace(/\/+$/, '') : '';
+	const trimmed = trimBaseUrl(raw);
 	return trimmed === '' ? DEFAULT_BASE_URL : trimmed;
 }
 
-/** The same resolution as resolveBaseUrl, for the declarative credential test */
-export const BASE_URL_EXPRESSION = `={{ ($credentials.baseUrl || '').trim().replace(/\\/+$/, '') || '${DEFAULT_BASE_URL}' }}`;
+/** The custom base URL when it's switched on and filled in, otherwise the base URL */
+export function credentialBaseUrl(credentials: {
+	baseUrl?: unknown;
+	useCustomBaseUrl?: unknown;
+	customBaseUrl?: unknown;
+}): string {
+	const custom =
+		credentials.useCustomBaseUrl === true ? trimBaseUrl(credentials.customBaseUrl) : '';
+	return custom === '' ? resolveBaseUrl(credentials.baseUrl) : custom;
+}
+
+/** The same resolution as credentialBaseUrl, for the declarative credential test */
+export const BASE_URL_EXPRESSION = `={{ ($credentials.useCustomBaseUrl === true && ($credentials.customBaseUrl || '').trim().replace(/\\/+$/, '')) || ($credentials.baseUrl || '').trim().replace(/\\/+$/, '') || '${DEFAULT_BASE_URL}' }}`;
 
 export type QuestionType = 'choice' | 'noul' | 'score';
 
@@ -108,7 +123,7 @@ async function apiRequest(
 		CREDENTIAL_NAME,
 		{
 			method: options.method,
-			url: `${resolveBaseUrl(credentials.baseUrl)}${options.path}`,
+			url: `${credentialBaseUrl(credentials)}${options.path}`,
 			// n8n types the body as the form-data package's FormData. A native one
 			// is passed through as is, and the HTTP client sets its multipart headers.
 			body: options.body as IDataObject,
@@ -117,7 +132,7 @@ async function apiRequest(
 			json: true,
 			returnFullResponse: true,
 			ignoreHttpStatusErrors: true,
-			// Keep the API key on TypeSafe's host if a response redirects elsewhere
+			// Keep the API key on the configured host if a response redirects elsewhere
 			sendCredentialsOnCrossOriginRedirect: false,
 		},
 	);
