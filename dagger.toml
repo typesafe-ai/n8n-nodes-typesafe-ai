@@ -1,16 +1,2 @@
-[modules.n8n-nodes-typesafe-ai]
-source = ".dagger"
-main = true
-
-[modules.python-sdk]
-source = "github.com/dagger/python-sdk@v1.8.0"
-
 [modules.zizmor]
 source = "github.com/typesafe-ai/daggerverse/zizmor@7aaba28b9639b4f64f1ec902c7a180af4c98bd6b"
-
-[sdks.python]
-module = "python-sdk"
-
-[sdks.python.scopes.".dagger"]
-clients = ["github.com/typesafe-ai/daggerverse/github@7aaba28b9639b4f64f1ec902c7a180af4c98bd6b"]
-is-module = true

@@ -1,5 +1,0 @@
-name = "n8n-nodes-typesafe-ai"
-
-[entrypoint]
-  kind = "dang"
-  source = "./sdk/entrypoint"
