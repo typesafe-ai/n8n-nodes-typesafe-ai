@@ -46,11 +46,11 @@ jobs:
       - name: Wait for Dagger Cloud checks
         uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         with:
-          version: "0.21.8"
+          version: "1.0.0-beta.25"
           call: |
             wait-dagger-checks
               --repo=${{ github.repository }}
               --ref=${{ github.event.pull_request.head.sha || github.sha }}
-              --token=env:GITHUB_TOKEN
+              --token=env://GITHUB_TOKEN
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
