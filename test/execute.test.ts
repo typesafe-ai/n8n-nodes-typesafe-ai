@@ -776,6 +776,22 @@ describe('Request', () => {
 		];
 		expect(options.sendCredentialsOnCrossOriginRedirect).toBe(false);
 	});
+
+	it('sends requests to the custom base URL when it is switched on', async () => {
+		const { functions, request } = createFunctions(routeParameters, items, () =>
+			choiceResponse('billing', 0.9),
+		);
+		functions.getCredentials = async () => ({
+			apiKey: 'k',
+			baseUrl: '',
+			useCustomBaseUrl: true,
+			customBaseUrl: 'https://gateway.example.com/typesafe/',
+		});
+		await TypeSafeAi.prototype.execute.call(functions);
+
+		const [, options] = request.mock.calls[0] as unknown as [unknown, { url: unknown }];
+		expect(options.url).toBe('https://gateway.example.com/typesafe/v1/systemone');
+	});
 });
 
 describe('Model', () => {
