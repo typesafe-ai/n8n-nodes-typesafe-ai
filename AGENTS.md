@@ -25,3 +25,7 @@ An n8n community node that calls TypeSafe's System One API (`POST /v1/systemone`
 
 1. Set the version in `package.json` and `CHANGELOG.md`, and merge to `main`.
 2. Push a tag with the same version, such as `0.9.0`. `.github/workflows/publish.yml` checks the tag and publishes to npm with provenance.
+
+## Dagger
+
+Read `.agents/skills/dagger/SKILL.md` before working on the Dagger modules in this repository.
