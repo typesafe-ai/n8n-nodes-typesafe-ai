@@ -1,2 +1,5 @@
 [modules.zizmor]
-source = "github.com/typesafe-ai/daggerverse/zizmor@832e918e77fe27114d31a68e266ad06c599e165f"
+source = "github.com/typesafe-ai/daggerverse/zizmor@f6d01ffeb6c321d98c66158fa4e83f238c3a9351"
+
+[modules.dagger-skill]
+source = "dagger.io/skill"
